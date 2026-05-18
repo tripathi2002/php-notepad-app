@@ -1,521 +1,1768 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cloud Notepad | Secure & Seamless</title>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Cloud Notepad | Secure & Seamless Tabbed Editor</title>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+      @import url("https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap");
 
-        :root {
-            --bg-color: #0b0f19;
-            --card-bg: rgba(17, 24, 39, 0.7);
-            --border-color: rgba(255, 255, 255, 0.08);
-            --text-main: #f3f4f6;
-            --text-muted: #9ca3af;
-            --accent-color: #3b82f6;
-            --accent-hover: #2563eb;
-            --success-color: #10b981;
-            --warning-color: #f59e0b;
-            --danger-color: #ef4444;
-            --shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
-        }
+      :root {
+        --bg-color: #0b0f19;
+        --card-bg: rgba(17, 24, 39, 0.7);
+        --border-color: rgba(255, 255, 255, 0.08);
+        --text-main: #f3f4f6;
+        --text-muted: #9ca3af;
+        --accent-color: #3b82f6;
+        --accent-hover: #2563eb;
+        --success-color: #10b981;
+        --warning-color: #f59e0b;
+        --danger-color: #ef4444;
+        --shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+      }
 
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
 
-        body, html {
-            height: 100%;
-            font-family: 'Outfit', sans-serif;
-            background-color: var(--bg-color);
-            color: var(--text-main);
-            overflow: hidden;
-            position: relative;
-        }
+      body,
+      html {
+        height: 100%;
+        font-family: "Outfit", sans-serif;
+        background-color: var(--bg-color);
+        color: var(--text-main);
+        overflow: hidden;
+        position: relative;
+      }
 
-        /* Ambient Animated Blobs */
-        .blob {
-            position: absolute;
-            filter: blur(120px);
-            z-index: -1;
-            opacity: 0.4;
-            animation: float 15s infinite ease-in-out alternate;
-        }
-        .blob-1 {
-            top: -10%;
-            left: -10%;
-            width: 500px;
-            height: 500px;
-            background: linear-gradient(135deg, #3b82f6, #8b5cf6);
-            border-radius: 50%;
-        }
-        .blob-2 {
-            bottom: -10%;
-            right: -10%;
-            width: 600px;
-            height: 600px;
-            background: linear-gradient(135deg, #ec4899, #f43f5e);
-            border-radius: 50%;
-            animation-delay: -7s;
-        }
+      /* Ambient Animated Blobs */
+      .blob {
+        position: absolute;
+        filter: blur(120px);
+        z-index: -1;
+        opacity: 0.4;
+        animation: float 15s infinite ease-in-out alternate;
+      }
+      .blob-1 {
+        top: -10%;
+        left: -10%;
+        width: 500px;
+        height: 500px;
+        background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+        border-radius: 50%;
+      }
+      .blob-2 {
+        bottom: -10%;
+        right: -10%;
+        width: 600px;
+        height: 600px;
+        background: linear-gradient(135deg, #ec4899, #f43f5e);
+        border-radius: 50%;
+        animation-delay: -7s;
+      }
 
-        @keyframes float {
-            0% { transform: translate(0, 0) scale(1); }
-            100% { transform: translate(50px, 80px) scale(1.15); }
+      @keyframes float {
+        0% {
+          transform: translate(0, 0) scale(1);
         }
-
-        .app-container {
-            display: flex;
-            flex-direction: column;
-            height: 100vh;
-            max-width: 1000px;
-            margin: 0 auto;
-            background: var(--card-bg);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            border-left: 1px solid var(--border-color);
-            border-right: 1px solid var(--border-color);
-            box-shadow: var(--shadow);
+        100% {
+          transform: translate(50px, 80px) scale(1.15);
         }
+      }
 
-        /* Header Styling */
-        header {
-            padding: 1.25rem 2rem;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-bottom: 1px solid var(--border-color);
-            background: rgba(15, 23, 42, 0.4);
-        }
+      .app-container {
+        display: flex;
+        flex-direction: column;
+        height: 100vh;
+        max-width: 1100px;
+        margin: 0 auto;
+        background: var(--card-bg);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        border-left: 1px solid var(--border-color);
+        border-right: 1px solid var(--border-color);
+        box-shadow: var(--shadow);
+      }
 
-        .logo-section h1 {
-            font-size: 1.5rem;
-            font-weight: 700;
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-            background: linear-gradient(to right, #60a5fa, #c084fc);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
+      /* Tabs Bar styling */
+      .tab-bar-container {
+        display: flex;
+        align-items: center;
+        background: rgba(15, 23, 42, 0.45);
+        border-bottom: 1px solid var(--border-color);
+        padding: 0.5rem 1rem 0 1rem;
+        gap: 0.5rem;
+      }
 
-        .logo-section svg {
-            stroke: #60a5fa;
-        }
+      .tab-bar {
+        display: flex;
+        gap: 4px;
+        overflow-x: auto;
+        flex-grow: 1;
+        scrollbar-width: none; /* Hide scrollbar for Firefox */
+      }
 
-        /* Status & Actions */
-        .sync-status {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            font-size: 0.85rem;
-            font-weight: 500;
-            padding: 0.4rem 0.8rem;
-            border-radius: 9999px;
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid var(--border-color);
-            transition: all 0.3s ease;
-        }
+      .tab-bar::-webkit-scrollbar {
+        display: none; /* Hide scrollbar for Chrome/Safari/Edge */
+      }
 
-        .status-dot {
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            display: inline-block;
-        }
+      .tab {
+        background: rgba(255, 255, 255, 0.02);
+        border: 1px solid var(--border-color);
+        border-bottom: none;
+        border-radius: 8px 8px 0 0;
+        padding: 0.45rem 1rem;
+        font-size: 0.85rem;
+        color: var(--text-muted);
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        transition: all 0.2s ease;
+        position: relative;
+        max-width: 180px;
+        min-width: 100px;
+        user-select: none;
+      }
 
-        /* Dynamic Status States */
-        .status-connected { color: var(--success-color); border-color: rgba(16, 185, 129, 0.2); }
-        .status-connected .status-dot { background-color: var(--success-color); box-shadow: 0 0 8px var(--success-color); }
-        
-        .status-saving { color: var(--accent-color); border-color: rgba(59, 130, 246, 0.2); }
-        .status-saving .status-dot { background-color: var(--accent-color); animation: pulse 1s infinite alternate; }
-        
-        .status-offline { color: var(--danger-color); border-color: rgba(239, 68, 68, 0.2); }
-        .status-offline .status-dot { background-color: var(--danger-color); box-shadow: 0 0 8px var(--danger-color); }
+      .tab.active {
+        background: rgba(11, 15, 25, 0.6);
+        border-color: var(--border-color);
+        color: var(--text-main);
+        font-weight: 500;
+        border-bottom: 2px solid var(--accent-color);
+        backdrop-filter: blur(5px);
+      }
 
-        @keyframes pulse {
-            0% { transform: scale(0.8); opacity: 0.5; }
-            100% { transform: scale(1.2); opacity: 1; box-shadow: 0 0 10px var(--accent-color); }
-        }
+      .tab:hover:not(.active) {
+        background: rgba(255, 255, 255, 0.06);
+        color: var(--text-main);
+      }
 
-        .actions {
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-        }
+      .tab-icon {
+        flex-shrink: 0;
+        color: #60a5fa;
+      }
 
-        .btn-icon {
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid var(--border-color);
-            color: var(--text-main);
-            width: 38px;
-            height: 38px;
-            border-radius: 10px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: all 0.2s ease;
-        }
+      .tab-name-span {
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        flex-grow: 1;
+      }
 
-        .btn-icon:hover {
-            background: rgba(255, 255, 255, 0.1);
-            transform: translateY(-1px);
-            border-color: rgba(255, 255, 255, 0.2);
-        }
+      .tab-rename-input {
+        background: rgba(255, 255, 255, 0.1);
+        border: 1px solid var(--accent-color);
+        color: #fff;
+        font-size: 0.85rem;
+        padding: 0 0.25rem;
+        border-radius: 4px;
+        width: 100%;
+        outline: none;
+        font-family: inherit;
+      }
 
-        /* Text Area Workspace */
-        .editor-container {
-            flex-grow: 1;
-            display: flex;
-            flex-direction: column;
-            position: relative;
-        }
+      .tab-close {
+        width: 16px;
+        height: 16px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 10px;
+        color: var(--text-muted);
+        transition: all 0.15s;
+        cursor: pointer;
+        flex-shrink: 0;
+      }
 
-        textarea {
-            flex-grow: 1;
-            width: 100%;
-            border: none;
-            padding: 2rem;
-            font-size: 1.1rem;
-            line-height: 1.7;
-            resize: none;
-            outline: none;
-            box-sizing: border-box;
-            background-color: transparent;
-            color: var(--text-main);
-            font-family: 'JetBrains Mono', 'Fira Code', Consolas, monospace;
-            transition: all 0.3s ease;
-        }
+      .tab-close:hover {
+        background: rgba(255, 255, 255, 0.15);
+        color: #fff;
+      }
 
-        textarea::placeholder {
-            color: rgba(156, 163, 175, 0.4);
-        }
+      .btn-add-tab {
+        background: rgba(255, 255, 255, 0.04);
+        border: 1px solid var(--border-color);
+        color: var(--text-muted);
+        width: 28px;
+        height: 28px;
+        border-radius: 6px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.2s;
+        margin-bottom: 0.25rem;
+        flex-shrink: 0;
+      }
 
-        /* Footer Toolbar */
-        footer {
-            padding: 0.75rem 2rem;
-            background: rgba(15, 23, 42, 0.4);
-            border-top: 1px solid var(--border-color);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            font-size: 0.85rem;
-            color: var(--text-muted);
-        }
+      .btn-add-tab:hover {
+        background: rgba(255, 255, 255, 0.1);
+        color: #fff;
+        transform: scale(1.05);
+      }
 
-        .stats {
-            display: flex;
-            gap: 1.5rem;
-        }
+      .tab-bar-actions {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        margin-bottom: 0.25rem;
+        flex-shrink: 0;
+      }
 
-        /* Settings Modal */
-        .modal-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0, 0, 0, 0.75);
-            backdrop-filter: blur(5px);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 100;
-            opacity: 0;
-            pointer-events: none;
-            transition: opacity 0.3s ease;
-        }
+      /* Sync status design */
+      .sync-status {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 0.75rem;
+        font-weight: 500;
+        padding: 0.3rem 0.6rem;
+        border-radius: 9999px;
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid var(--border-color);
+        transition: all 0.3s ease;
+      }
 
-        .modal-overlay.active {
-            opacity: 1;
-            pointer-events: auto;
-        }
+      .status-dot {
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        display: inline-block;
+      }
 
-        .modal {
-            background: #111827;
-            border: 1px solid var(--border-color);
-            border-radius: 16px;
-            padding: 2rem;
-            width: 90%;
-            max-width: 450px;
-            box-shadow: var(--shadow);
-            transform: scale(0.9);
-            transition: transform 0.3s ease;
-        }
+      .status-connected {
+        color: var(--success-color);
+        border-color: rgba(16, 185, 129, 0.2);
+      }
+      .status-connected .status-dot {
+        background-color: var(--success-color);
+        box-shadow: 0 0 6px var(--success-color);
+      }
 
-        .modal-overlay.active .modal {
-            transform: scale(1);
-        }
+      .status-saving {
+        color: var(--accent-color);
+        border-color: rgba(59, 130, 246, 0.2);
+      }
+      .status-saving .status-dot {
+        background-color: var(--accent-color);
+        animation: pulse 1s infinite alternate;
+      }
 
-        .modal h2 {
-            font-size: 1.25rem;
-            margin-bottom: 1rem;
-            color: #fff;
-        }
+      .status-offline {
+        color: var(--danger-color);
+        border-color: rgba(239, 68, 68, 0.2);
+      }
+      .status-offline .status-dot {
+        background-color: var(--danger-color);
+        box-shadow: 0 0 6px var(--danger-color);
+      }
 
-        .form-group {
-            margin-bottom: 1.25rem;
-        }
+      @keyframes pulse {
+        0% { transform: scale(0.8); opacity: 0.5; }
+        100% { transform: scale(1.2); opacity: 1; box-shadow: 0 0 8px var(--accent-color); }
+      }
 
-        .form-group label {
-            display: block;
-            font-size: 0.85rem;
-            color: var(--text-muted);
-            margin-bottom: 0.5rem;
-        }
+      .btn-icon-small {
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid var(--border-color);
+        color: var(--text-main);
+        width: 28px;
+        height: 28px;
+        border-radius: 6px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.2s ease;
+      }
 
-        .form-group input {
-            width: 100%;
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid var(--border-color);
-            color: #fff;
-            padding: 0.75rem 1rem;
-            border-radius: 8px;
-            font-family: inherit;
-            outline: none;
-        }
+      .btn-icon-small:hover {
+        background: rgba(255, 255, 255, 0.1);
+        border-color: rgba(255, 255, 255, 0.2);
+      }
 
-        .form-group input:focus {
-            border-color: var(--accent-color);
-        }
+      /* Toolbar styles */
+      .toolbar-container {
+        background: rgba(15, 23, 42, 0.35);
+        border-bottom: 1px solid var(--border-color);
+        display: flex;
+        align-items: center;
+        padding: 0.4rem 1.5rem;
+        gap: 1rem;
+        flex-wrap: wrap;
+      }
 
-        .modal-buttons {
-            display: flex;
-            justify-content: flex-end;
-            gap: 0.75rem;
-        }
+      .menu-dropdowns {
+        display: flex;
+        gap: 0.25rem;
+      }
 
-        .btn-modal {
-            padding: 0.6rem 1.2rem;
-            border-radius: 8px;
-            font-size: 0.875rem;
-            cursor: pointer;
-            font-weight: 500;
-            border: none;
-            transition: all 0.2s ease;
-        }
+      .menu-item {
+        position: relative;
+      }
 
-        .btn-save-settings {
-            background: var(--accent-color);
-            color: #fff;
-        }
+      .menu-trigger {
+        padding: 0.35rem 0.75rem;
+        border-radius: 6px;
+        font-size: 0.85rem;
+        font-weight: 500;
+        color: var(--text-muted);
+        cursor: pointer;
+        display: inline-block;
+        transition: all 0.15s;
+        user-select: none;
+      }
 
-        .btn-save-settings:hover {
-            background: var(--accent-hover);
-        }
+      .menu-trigger:hover, .menu-item.active .menu-trigger {
+        background: rgba(255, 255, 255, 0.06);
+        color: var(--text-main);
+      }
 
-        .btn-cancel-settings {
-            background: rgba(255, 255, 255, 0.05);
-            color: var(--text-main);
-            border: 1px solid var(--border-color);
-        }
+      .dropdown-menu {
+        position: absolute;
+        top: 100%;
+        left: 0;
+        background: #111827;
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        box-shadow: var(--shadow);
+        z-index: 100;
+        display: none;
+        min-width: 180px;
+        padding: 0.35rem 0;
+        margin-top: 4px;
+        backdrop-filter: blur(10px);
+      }
 
-        .btn-cancel-settings:hover {
-            background: rgba(255, 255, 255, 0.1);
-        }
+      .menu-item.active .dropdown-menu {
+        display: block;
+        animation: slideDown 0.15s ease-out;
+      }
+
+      @keyframes slideDown {
+        from { transform: translateY(-5px); opacity: 0; }
+        to { transform: translateY(0); opacity: 1; }
+      }
+
+      .dropdown-btn {
+        width: 100%;
+        text-align: left;
+        background: none;
+        border: none;
+        color: var(--text-muted);
+        padding: 0.5rem 1rem;
+        font-size: 0.85rem;
+        display: flex;
+        align-items: center;
+        gap: 0.6rem;
+        cursor: pointer;
+        transition: all 0.15s;
+      }
+
+      .dropdown-btn:hover {
+        background: rgba(255, 255, 255, 0.06);
+        color: #fff;
+      }
+
+      .dropdown-btn.btn-danger-hover:hover {
+        background: rgba(239, 68, 68, 0.15);
+        color: var(--danger-color);
+      }
+
+      .dropdown-divider {
+        border: none;
+        border-top: 1px solid var(--border-color);
+        margin: 0.35rem 0;
+      }
+
+      .toolbar-separator {
+        width: 1px;
+        height: 18px;
+        background: var(--border-color);
+      }
+
+      .formatting-tools {
+        display: flex;
+        align-items: center;
+        gap: 0.4rem;
+      }
+
+      .format-select-container {
+        position: relative;
+        display: flex;
+        align-items: center;
+      }
+
+      .format-select {
+        background: rgba(255, 255, 255, 0.04);
+        border: 1px solid var(--border-color);
+        color: var(--text-muted);
+        padding: 0.35rem 1.75rem 0.35rem 0.75rem;
+        border-radius: 6px;
+        font-size: 0.825rem;
+        font-family: inherit;
+        outline: none;
+        cursor: pointer;
+        -webkit-appearance: none;
+        -moz-appearance: none;
+        appearance: none;
+      }
+
+      .format-select:hover {
+        background: rgba(255, 255, 255, 0.08);
+        color: var(--text-main);
+      }
+
+      .select-arrow {
+        position: absolute;
+        right: 0.5rem;
+        color: var(--text-muted);
+        pointer-events: none;
+      }
+
+      .tool-btn {
+        background: rgba(255, 255, 255, 0.04);
+        border: 1px solid var(--border-color);
+        color: var(--text-muted);
+        width: 30px;
+        height: 30px;
+        border-radius: 6px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.875rem;
+        font-weight: 500;
+        transition: all 0.2s;
+        user-select: none;
+      }
+
+      .tool-btn:hover {
+        background: rgba(255, 255, 255, 0.08);
+        color: var(--text-main);
+      }
+
+      .tool-btn.active {
+        background: rgba(59, 130, 246, 0.15);
+        border-color: var(--accent-color);
+        color: var(--accent-color);
+      }
+
+      .tool-btn.font-weight-bold { font-weight: 700; }
+      .tool-btn.font-style-italic { font-style: italic; font-family: Georgia, serif; }
+      .tool-btn.text-decoration-strike { text-decoration: line-through; }
+
+      /* Editor container */
+      .editor-container {
+        flex-grow: 1;
+        display: flex;
+        flex-direction: column;
+        position: relative;
+        background: transparent;
+        overflow: hidden;
+      }
+
+      .editor-body {
+        flex-grow: 1;
+        width: 100%;
+        border: none;
+        padding: 2rem;
+        font-size: 1.1rem;
+        line-height: 1.7;
+        resize: none;
+        outline: none;
+        box-sizing: border-box;
+        background-color: transparent;
+        color: var(--text-main);
+        font-family: "JetBrains Mono", "Fira Code", Consolas, monospace;
+        overflow-y: auto;
+      }
+
+      #notepad-plain {
+        display: block;
+      }
+
+      #notepad-rich {
+        display: none;
+        white-space: pre-wrap;
+      }
+
+      /* Rich Editor Styling */
+      #notepad-rich h1 { font-size: 1.85rem; margin-bottom: 0.5rem; font-weight: 700; color: #fff; border-bottom: 1px solid var(--border-color); padding-bottom: 0.25rem; }
+      #notepad-rich h2 { font-size: 1.5rem; margin-bottom: 0.4rem; font-weight: 600; color: #fff; }
+      #notepad-rich h3 { font-size: 1.25rem; margin-bottom: 0.3rem; font-weight: 600; color: #fff; }
+      #notepad-rich ul, #notepad-rich ol { margin-left: 1.5rem; margin-bottom: 0.5rem; }
+      #notepad-rich li { margin-bottom: 0.25rem; }
+      #notepad-rich a { color: var(--accent-color); text-decoration: underline; }
+      #notepad-rich table { border-collapse: collapse; width: 100%; margin: 1rem 0; border: 1px solid var(--border-color); }
+      #notepad-rich th, #notepad-rich td { border: 1px solid var(--border-color); padding: 0.5rem; text-align: left; }
+      #notepad-rich th { background: rgba(255, 255, 255, 0.05); }
+
+      /* Footer Status Bar styling */
+      footer {
+        padding: 0.4rem 1.5rem;
+        background: rgba(15, 23, 42, 0.45);
+        border-top: 1px solid var(--border-color);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-size: 0.825rem;
+        color: var(--text-muted);
+        user-select: none;
+      }
+
+      .footer-left, .footer-right {
+        display: flex;
+        align-items: center;
+      }
+
+      .footer-divider {
+        margin: 0 0.75rem;
+        color: rgba(255, 255, 255, 0.1);
+      }
+
+      .mode-select-container {
+        position: relative;
+        display: inline-block;
+      }
+
+      .status-dropdown-trigger {
+        cursor: pointer;
+        color: var(--text-muted);
+        transition: color 0.15s;
+        display: flex;
+        align-items: center;
+        gap: 0.25rem;
+      }
+
+      .status-dropdown-trigger:hover {
+        color: var(--text-main);
+      }
+
+      .status-dropdown-trigger::after {
+        content: '';
+        display: inline-block;
+        border: 4px solid transparent;
+        border-top-color: currentColor;
+        margin-top: 2px;
+      }
+
+      .status-dropdown {
+        position: absolute;
+        bottom: 100%;
+        right: 0;
+        background: #111827;
+        border: 1px solid var(--border-color);
+        border-radius: 6px;
+        box-shadow: var(--shadow);
+        z-index: 100;
+        display: none;
+        min-width: 130px;
+        padding: 0.25rem 0;
+        margin-bottom: 6px;
+        backdrop-filter: blur(10px);
+      }
+
+      .status-dropdown.active {
+        display: block;
+        animation: slideUp 0.15s ease-out;
+      }
+
+      @keyframes slideUp {
+        from { transform: translateY(5px); opacity: 0; }
+        to { transform: translateY(0); opacity: 1; }
+      }
+
+      .status-dropdown-btn {
+        width: 100%;
+        text-align: left;
+        background: none;
+        border: none;
+        color: var(--text-muted);
+        padding: 0.4rem 0.8rem;
+        font-size: 0.8rem;
+        cursor: pointer;
+        transition: all 0.15s;
+      }
+
+      .status-dropdown-btn:hover {
+        background: rgba(255, 255, 255, 0.06);
+        color: #fff;
+      }
+
+      /* Settings Modal */
+      .modal-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.75);
+        backdrop-filter: blur(5px);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 1000;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.3s ease;
+      }
+
+      .modal-overlay.active {
+        opacity: 1;
+        pointer-events: auto;
+      }
+
+      .modal {
+        background: #111827;
+        border: 1px solid var(--border-color);
+        border-radius: 16px;
+        padding: 2rem;
+        width: 90%;
+        max-width: 450px;
+        box-shadow: var(--shadow);
+        transform: scale(0.9);
+        transition: transform 0.3s ease;
+      }
+
+      .modal-overlay.active .modal {
+        transform: scale(1);
+      }
+
+      .modal h2 {
+        font-size: 1.25rem;
+        margin-bottom: 1rem;
+        color: #fff;
+      }
+
+      .form-group {
+        margin-bottom: 1.25rem;
+      }
+
+      .form-group label {
+        display: block;
+        font-size: 0.85rem;
+        color: var(--text-muted);
+        margin-bottom: 0.5rem;
+      }
+
+      .form-group input {
+        width: 100%;
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid var(--border-color);
+        color: #fff;
+        padding: 0.75rem 1rem;
+        border-radius: 8px;
+        font-family: inherit;
+        outline: none;
+      }
+
+      .form-group input:focus {
+        border-color: var(--accent-color);
+      }
+
+      .modal-buttons {
+        display: flex;
+        justify-content: flex-end;
+        gap: 0.75rem;
+      }
+
+      .btn-modal {
+        padding: 0.6rem 1.2rem;
+        border-radius: 8px;
+        font-size: 0.875rem;
+        cursor: pointer;
+        font-weight: 500;
+        border: none;
+        transition: all 0.2s ease;
+      }
+
+      .btn-save-settings {
+        background: var(--accent-color);
+        color: #fff;
+      }
+
+      .btn-save-settings:hover {
+        background: var(--accent-hover);
+      }
+
+      .btn-cancel-settings {
+        background: rgba(255, 255, 255, 0.05);
+        color: var(--text-main);
+        border: 1px solid var(--border-color);
+      }
+
+      .btn-cancel-settings:hover {
+        background: rgba(255, 255, 255, 0.1);
+      }
     </style>
-</head>
-<body>
+  </head>
+  <body>
     <div class="blob blob-1"></div>
     <div class="blob blob-2"></div>
 
     <div class="app-container">
-        <header>
-            <div class="logo-section">
-                <h1>
-                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
-                    </svg>
-                    Cloud Notepad
-                </h1>
-            </div>
-            
-            <div class="actions">
-                <div class="sync-status status-connected" id="syncStatus">
-                    <span class="status-dot"></span>
-                    <span class="status-text" id="statusText">Connected</span>
-                </div>
-                
-                <button class="btn-icon" id="settingsBtn" title="API Settings">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <circle cx="12" cy="12" r="3"></circle>
-                        <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
-                    </svg>
-                </button>
-            </div>
-        </header>
+      <!-- Tab Bar Row -->
+      <div class="tab-bar-container">
+        <!-- Tabs scroll block -->
+        <div class="tab-bar" id="tabBar">
+          <!-- Dynamic tabs added here -->
+        </div>
+        <!-- Add Tab Button -->
+        <button class="btn-add-tab" id="addTabBtn" title="New Note (Ctrl+N)">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <line x1="12" y1="5" x2="12" y2="19"></line>
+            <line x1="5" y1="12" x2="19" y2="12"></line>
+          </svg>
+        </button>
+        <!-- Actions & Sync block -->
+        <div class="tab-bar-actions">
+          <div class="sync-status status-connected" id="syncStatus">
+            <span class="status-dot"></span>
+            <span class="status-text" id="statusText">Connected</span>
+          </div>
+          <!-- Settings Icon -->
+          <button class="btn-icon-small" id="settingsBtn" title="API Settings">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="3"></circle>
+              <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+            </svg>
+          </button>
+        </div>
+      </div>
 
-        <div class="editor-container">
-            <textarea id="notepad" placeholder="Your cloud note is empty. Start typing and it will autosave..." spellcheck="false" autofocus></textarea>
+      <!-- Menu Dropdowns & Toolbars Row -->
+      <div class="toolbar-container">
+        <!-- Text menus (File, Edit, View) -->
+        <div class="menu-dropdowns">
+          <div class="menu-item">
+            <span class="menu-trigger">File</span>
+            <div class="dropdown-menu">
+              <button class="dropdown-btn" id="menuNewNote">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                  <polyline points="14 2 14 8 20 8"></polyline>
+                </svg> New Note
+              </button>
+              <button class="dropdown-btn" id="menuSaveNote">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+                  <polyline points="17 21 17 13 7 13 7 21"></polyline>
+                  <polyline points="7 3 7 8 15 8"></polyline>
+                </svg> Save Active
+              </button>
+              <hr class="dropdown-divider">
+              <button class="dropdown-btn btn-danger-hover" id="menuDeleteNote">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <polyline points="3 6 5 6 21 6"></polyline>
+                  <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                </svg> Delete Active
+              </button>
+            </div>
+          </div>
+          
+          <div class="menu-item">
+            <span class="menu-trigger">Edit</span>
+            <div class="dropdown-menu">
+              <button class="dropdown-btn" id="menuUndo">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M3 7v6h6"></path>
+                  <path d="M21 17a9 9 0 0 0-9-9 9 9 0 0 0-6 2.3L3 13"></path>
+                </svg> Undo
+              </button>
+              <button class="dropdown-btn" id="menuRedo">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M21 7v6h-6"></path>
+                  <path d="M3 17a9 9 0 0 1 9-9 9 9 0 0 1 6 2.3l3 2.7"></path>
+                </svg> Redo
+              </button>
+              <hr class="dropdown-divider">
+              <button class="dropdown-btn" id="menuClearAll">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M21 4H8l-7 8 7 8h13a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2z"></path>
+                  <line x1="18" y1="9" x2="12" y2="15"></line>
+                  <line x1="12" y1="9" x2="18" y2="15"></line>
+                </svg> Clear Active Note
+              </button>
+            </div>
+          </div>
+
+          <div class="menu-item">
+            <span class="menu-trigger">View</span>
+            <div class="dropdown-menu">
+              <button class="dropdown-btn" id="menuToggleTheme">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                </svg> Toggle Ambient Blobs
+              </button>
+              <button class="dropdown-btn" id="menuToggleWrap">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <polyline points="9 10 4 15 9 20"></polyline>
+                  <path d="M20 4v7a4 4 0 0 1-4 4H4"></path>
+                </svg> Toggle Word Wrap
+              </button>
+            </div>
+          </div>
         </div>
 
-        <footer>
-            <div class="stats">
-                <span id="charCount">0 characters</span>
-                <span id="wordCount">0 words</span>
+        <div class="toolbar-separator"></div>
+
+        <!-- Formatting Buttons -->
+        <div class="formatting-tools">
+          <div class="format-select-container">
+            <select class="format-select" id="headingSelect" title="Heading Level">
+              <option value="p">Paragraph</option>
+              <option value="h1">Heading 1</option>
+              <option value="h2">Heading 2</option>
+              <option value="h3">Heading 3</option>
+            </select>
+            <svg class="select-arrow" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+              <polyline points="6 9 12 15 18 9"></polyline>
+            </svg>
+          </div>
+
+          <button class="tool-btn" id="toolListBullet" title="Bulleted List">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+              <line x1="8" y1="6" x2="21" y2="6"></line>
+              <line x1="8" y1="12" x2="21" y2="12"></line>
+              <line x1="8" y1="18" x2="21" y2="18"></line>
+              <line x1="3" y1="6" x2="3.01" y2="6"></line>
+              <line x1="3" y1="12" x2="3.01" y2="12"></line>
+              <line x1="3" y1="18" x2="3.01" y2="18"></line>
+            </svg>
+          </button>
+
+          <button class="tool-btn font-weight-bold" id="toolBold" title="Bold (Ctrl+B)">B</button>
+          <button class="tool-btn font-style-italic" id="toolItalic" title="Italic (Ctrl+I)">I</button>
+          <button class="tool-btn text-decoration-strike" id="toolStrikethrough" title="Strikethrough">S</button>
+          
+          <button class="tool-btn" id="toolLink" title="Insert Link">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path>
+              <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path>
+            </svg>
+          </button>
+
+          <button class="tool-btn" id="toolTable" title="Insert Table">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+              <line x1="3" y1="9" x2="21" y2="9"></line>
+              <line x1="3" y1="15" x2="21" y2="15"></line>
+              <line x1="12" y1="3" x2="12" y2="21"></line>
+            </svg>
+          </button>
+
+          <button class="tool-btn" id="toolClearFormat" title="Clear Formatting">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
+              <path d="m15 2 6 6-10 10H5v-6L15 2Z"></path>
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- Workspace (Plain / Rich editor layer) -->
+      <div class="editor-container">
+        <!-- Plain editor layer -->
+        <textarea
+          id="notepad-plain"
+          class="editor-body"
+          placeholder="Your cloud note is empty. Start typing and it will autosave..."
+          spellcheck="false"
+          autofocus
+        ></textarea>
+
+        <!-- Rich editor layer -->
+        <div
+          id="notepad-rich"
+          class="editor-body"
+          contenteditable="true"
+          spellcheck="true"
+        ></div>
+      </div>
+
+      <!-- Custom Windows Notepad Style Status Bar -->
+      <footer>
+        <div class="footer-left">
+          <span id="cursorPos">Ln 1, Col 1</span>
+          <span class="footer-divider">|</span>
+          <span id="charCount">0 characters</span>
+          <span class="footer-divider">|</span>
+          <span id="wordCount">0 words</span>
+        </div>
+        <div class="footer-right">
+          <div class="mode-select-container">
+            <span class="status-dropdown-trigger" id="modeTrigger">Plain text</span>
+            <div class="status-dropdown" id="modeDropdown">
+              <button class="status-dropdown-btn" id="modePlain">Plain text</button>
+              <button class="status-dropdown-btn" id="modeRich">Rich HTML</button>
             </div>
-            <div id="lastSaved">Not loaded yet</div>
-        </footer>
+          </div>
+          <span class="footer-divider">|</span>
+          <span>100%</span>
+          <span class="footer-divider">|</span>
+          <span>Windows (CRLF)</span>
+          <span class="footer-divider">|</span>
+          <span>UTF-8</span>
+          <span class="footer-divider">|</span>
+          <span id="lastSaved">Syncing...</span>
+        </div>
+      </footer>
     </div>
 
-    <!-- Configuration Modal -->
+    <!-- Configuration Modal (Preserving Original Functionality) -->
     <div class="modal-overlay" id="modalOverlay">
-        <div class="modal">
-            <h2>Cloud Settings</h2>
-            <div class="form-group">
-                <label for="apiUrl">PHP Backend API URL</label>
-                <input type="url" id="apiUrl" placeholder="https://vibhu.pro/notepad/index.php">
-            </div>
-            <div class="modal-buttons">
-                <button class="btn-modal btn-cancel-settings" id="cancelSettings">Cancel</button>
-                <button class="btn-modal btn-save-settings" id="saveSettings">Save Configuration</button>
-            </div>
+      <div class="modal">
+        <h2>Cloud Settings</h2>
+        <div class="form-group">
+          <label for="apiUrl">PHP Backend API URL</label>
+          <input
+            type="url"
+            id="apiUrl"
+            placeholder="https://vibhu.pro/notepad-app/index.php"
+          />
         </div>
+        <div class="modal-buttons">
+          <button class="btn-modal btn-cancel-settings" id="cancelSettings">
+            Cancel
+          </button>
+          <button class="btn-modal btn-save-settings" id="saveSettings">
+            Save Configuration
+          </button>
+        </div>
+      </div>
     </div>
 
     <script>
-        // DOM Elements
-        const notepad = document.getElementById('notepad');
-        const syncStatus = document.getElementById('syncStatus');
-        const statusText = document.getElementById('statusText');
-        const charCount = document.getElementById('charCount');
-        const wordCount = document.getElementById('wordCount');
-        const lastSaved = document.getElementById('lastSaved');
-        const settingsBtn = document.getElementById('settingsBtn');
-        const modalOverlay = document.getElementById('modalOverlay');
-        const cancelSettings = document.getElementById('cancelSettings');
-        const saveSettings = document.getElementById('saveSettings');
-        const apiUrlInput = document.getElementById('apiUrl');
+      // DOM Elements
+      const notepadPlain = document.getElementById("notepad-plain");
+      const notepadRich = document.getElementById("notepad-rich");
+      const tabBar = document.getElementById("tabBar");
+      const addTabBtn = document.getElementById("addTabBtn");
+      
+      const syncStatus = document.getElementById("syncStatus");
+      const statusText = document.getElementById("statusText");
+      const charCount = document.getElementById("charCount");
+      const wordCount = document.getElementById("wordCount");
+      const cursorPos = document.getElementById("cursorPos");
+      const lastSaved = document.getElementById("lastSaved");
+      
+      const headingSelect = document.getElementById("headingSelect");
+      const toolListBullet = document.getElementById("toolListBullet");
+      const toolBold = document.getElementById("toolBold");
+      const toolItalic = document.getElementById("toolItalic");
+      const toolStrikethrough = document.getElementById("toolStrikethrough");
+      const toolLink = document.getElementById("toolLink");
+      const toolTable = document.getElementById("toolTable");
+      const toolClearFormat = document.getElementById("toolClearFormat");
+      
+      const modeTrigger = document.getElementById("modeTrigger");
+      const modeDropdown = document.getElementById("modeDropdown");
+      const modePlain = document.getElementById("modePlain");
+      const modeRich = document.getElementById("modeRich");
 
-        // Default Config API endpoint (falls back to local relative path if not configured)
-        const DEFAULT_API = window.location.hostname.includes('github.io') || window.location.hostname.includes('vibhu.pro')
-            ? 'https://vibhu.pro/notepad/index.php' 
-            : 'index.php';
+      const settingsBtn = document.getElementById("settingsBtn");
+      const modalOverlay = document.getElementById("modalOverlay");
+      const cancelSettings = document.getElementById("cancelSettings");
+      const saveSettings = document.getElementById("saveSettings");
+      const apiUrlInput = document.getElementById("apiUrl");
 
-        let config = {
-            apiUrl: localStorage.getItem('notepad_api_url') || DEFAULT_API
+      // API Configuration Endpoint
+      const DEFAULT_API =
+        window.location.hostname.includes("github.io") ||
+        window.location.hostname.includes("vibhu.pro")
+          ? "https://vibhu.pro/notepad/index.php"
+          : "index.php";
+
+      let config = {
+        apiUrl: localStorage.getItem("notepad_api_url") || DEFAULT_API,
+      };
+
+      // State Management
+      let notes = [];
+      let activeNoteName = null;
+      let autosaveTimeout = null;
+      let wordWrap = true;
+      let showBlobs = true;
+
+      // Initialize App
+      function init() {
+        apiUrlInput.value = config.apiUrl;
+        setupEventListeners();
+        loadNotesList();
+      }
+
+      // Load all notes from backend
+      async function loadNotesList() {
+        setSyncStatus("saving", "Syncing tabs...");
+        try {
+          const response = await fetch(`${config.apiUrl}?action=list`, {
+            method: "GET",
+            headers: {
+              Accept: "application/json",
+            },
+          });
+
+          if (!response.ok) throw new Error("Network error loading notes list");
+
+          const data = await response.json();
+          if (data.success && data.notes && data.notes.length > 0) {
+            notes = data.notes.map(noteInfo => ({
+              name: noteInfo.name,
+              content: null, // Load contents lazily
+              mode: noteInfo.name.endsWith('.html') || noteInfo.name.endsWith('.htm') ? 'rich' : 'plain'
+            }));
+            
+            // Choose active note: restore from local storage or default to first
+            const cachedActive = localStorage.getItem("active_note_name");
+            if (cachedActive && notes.some(n => n.name === cachedActive)) {
+              activeNoteName = cachedActive;
+            } else {
+              activeNoteName = notes[0].name;
+            }
+            
+            await loadNoteContent(activeNoteName);
+          } else {
+            // Empty server folder, instantiate default
+            await instantiateDefaultNote();
+          }
+        } catch (error) {
+          console.error("Backend error: falling back to offline storage", error);
+          setSyncStatus("offline", "Using offline cache");
+          loadOfflineCache();
+        }
+      }
+
+      // Load content for a single note
+      async function loadNoteContent(name) {
+        const note = notes.find(n => n.name === name);
+        if (!note) return;
+
+        if (note.content !== null) {
+          displayNote(note);
+          renderTabs();
+          return;
+        }
+
+        setSyncStatus("saving", `Loading ${name}...`);
+        try {
+          const response = await fetch(`${config.apiUrl}?action=load&name=${encodeURIComponent(name)}`, {
+            method: "GET",
+            headers: {
+              Accept: "application/json",
+            },
+          });
+
+          if (!response.ok) throw new Error("Loading failed");
+
+          const data = await response.json();
+          note.content = data.content || "";
+          displayNote(note);
+          renderTabs();
+          setSyncStatus("connected", "Synced");
+          lastSaved.innerText = "Last synced: Just now";
+        } catch (error) {
+          console.error("Could not fetch note content", error);
+          setSyncStatus("offline", "Error loading file content");
+          note.content = ""; // Fallback
+          displayNote(note);
+          renderTabs();
+        }
+      }
+
+      // Display the current note in correct editor
+      function displayNote(note) {
+        localStorage.setItem("active_note_name", note.name);
+        modeTrigger.innerText = note.mode === 'rich' ? 'Rich HTML' : 'Plain text';
+        
+        if (note.mode === 'rich') {
+          notepadPlain.style.display = 'none';
+          notepadRich.style.display = 'block';
+          notepadRich.innerHTML = note.content || '';
+          
+          headingSelect.value = 'p';
+          notepadRich.focus();
+        } else {
+          notepadRich.style.display = 'none';
+          notepadPlain.style.display = 'block';
+          notepadPlain.value = note.content || '';
+          
+          notepadPlain.focus();
+        }
+        
+        updateStats();
+        updateCursorPos();
+      }
+
+      // Render tab bar dynamically
+      function renderTabs() {
+        tabBar.innerHTML = '';
+        notes.forEach(note => {
+          const tab = document.createElement('div');
+          tab.className = `tab ${note.name === activeNoteName ? 'active' : ''}`;
+          tab.title = "Double-click to rename note";
+
+          // Icon based on type
+          const isRich = note.mode === 'rich' || note.name.endsWith('.html');
+          const fileIcon = isRich 
+            ? `<svg class="tab-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#a78bfa" stroke-width="2.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>`
+            : `<svg class="tab-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#60a5fa" stroke-width="2.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>`;
+
+          tab.innerHTML = `
+            ${fileIcon}
+            <span class="tab-name-span">${note.name}</span>
+            <span class="tab-close" title="Delete Note">✕</span>
+          `;
+
+          // Double click to rename
+          tab.addEventListener('dblclick', (e) => {
+            if (e.target.classList.contains('tab-close')) return;
+            renameNoteInline(note.name, tab);
+          });
+
+          // Single click to switch tabs
+          tab.addEventListener('click', (e) => {
+            if (e.target.classList.contains('tab-close') || tab.querySelector('.tab-rename-input')) return;
+            if (activeNoteName !== note.name) {
+              activeNoteName = note.name;
+              loadNoteContent(activeNoteName);
+            }
+          });
+
+          // Close button click
+          tab.querySelector('.tab-close').addEventListener('click', (e) => {
+            e.stopPropagation();
+            deleteNote(note.name);
+          });
+
+          tabBar.appendChild(tab);
+        });
+
+        // Save local copy of entire tabs list
+        saveOfflineCache();
+      }
+
+      // Inline renaming of tab names
+      function renameNoteInline(name, tabElement) {
+        const note = notes.find(n => n.name === name);
+        if (!note) return;
+
+        const span = tabElement.querySelector('.tab-name-span');
+        const oldText = span.innerText;
+
+        const input = document.createElement('input');
+        input.type = 'text';
+        input.className = 'tab-rename-input';
+        input.value = oldText;
+
+        span.style.display = 'none';
+        tabElement.insertBefore(input, span);
+        
+        input.focus();
+        input.select();
+
+        let isFinishing = false;
+
+        async function finishRename() {
+          if (isFinishing) return;
+          isFinishing = true;
+
+          let newName = input.value.trim();
+          newName = newName.replace(/[^a-zA-Z0-9_\-\. ]/g, ''); // sanitize
+
+          if (newName === '' || newName === name) {
+            input.remove();
+            span.style.display = 'inline';
+            return;
+          }
+
+          // Force correct extensions if missing
+          if (!newName.includes('.')) {
+            newName += note.mode === 'rich' ? '.html' : '.txt';
+          }
+
+          if (notes.some(n => n.name.toLowerCase() === newName.toLowerCase())) {
+            alert("A note with that name already exists!");
+            input.remove();
+            span.style.display = 'inline';
+            return;
+          }
+
+          const oldName = note.name;
+          note.name = newName;
+          
+          if (activeNoteName === oldName) {
+            activeNoteName = newName;
+          }
+
+          setSyncStatus("saving", "Renaming note...");
+          try {
+            // Save as new note name
+            const saveResp = await fetch(config.apiUrl, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                action: "save",
+                name: newName,
+                content: note.content || ""
+              })
+            });
+
+            if (saveResp.ok) {
+              // Delete old note from server
+              await fetch(config.apiUrl, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                  action: "delete",
+                  name: oldName
+                })
+              });
+            }
+            setSyncStatus("connected", "Renamed");
+            lastSaved.innerText = "Last synced: Just now";
+          } catch (e) {
+            console.error("Rename failed", e);
+            setSyncStatus("offline", "Rename failed on server");
+          }
+
+          renderTabs();
+          displayNote(note);
+        }
+
+        input.addEventListener('keydown', (e) => {
+          if (e.key === 'Enter') finishRename();
+          else if (e.key === 'Escape') {
+            isFinishing = true;
+            input.remove();
+            span.style.display = 'inline';
+          }
+        });
+
+        input.addEventListener('blur', finishRename);
+      }
+
+      // Add a new tab / note
+      async function addNewNote() {
+        // Unique name
+        let counter = 1;
+        let candidateName = `Untitled_${counter}.txt`;
+        while (notes.some(n => n.name.toLowerCase() === candidateName.toLowerCase())) {
+          counter++;
+          candidateName = `Untitled_${counter}.txt`;
+        }
+
+        const newNote = {
+          name: candidateName,
+          content: "",
+          mode: "plain"
         };
 
-        let autosaveTimeout;
+        notes.unshift(newNote);
+        activeNoteName = newNote.name;
 
-        // Initialize App
-        function init() {
-            apiUrlInput.value = config.apiUrl;
-            updateStats();
-            loadNote();
+        renderTabs();
+        displayNote(newNote);
+
+        await saveNoteToServer(newNote);
+      }
+
+      // Delete an existing note
+      async function deleteNote(name) {
+        if (notes.length <= 1) {
+          alert("You must keep at least one note open!");
+          return;
         }
 
-        // Fetch Note from Backend
-        async function loadNote() {
-            setSyncStatus('saving', 'Loading note...');
-            try {
-                const response = await fetch(config.apiUrl, {
-                    method: 'GET',
-                    headers: {
-                        'Accept': 'application/json',
-                    }
-                });
+        if (!confirm(`Are you sure you want to permanently delete "${name}"?`)) return;
 
-                if (!response.ok) throw new Error('Network response was not ok');
+        setSyncStatus("saving", "Deleting...");
+        try {
+          const response = await fetch(config.apiUrl, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              action: "delete",
+              name: name
+            })
+          });
 
-                const data = await response.json();
-                notepad.value = data.content || '';
-                updateStats();
-                setSyncStatus('connected', 'Synced');
-                lastSaved.innerText = 'Last synced: Just now';
-            } catch (error) {
-                console.error('Error loading note:', error);
-                setSyncStatus('offline', 'Error loading note');
-                lastSaved.innerText = 'Sync failed';
+          if (!response.ok) throw new Error("Delete failed");
+
+          const data = await response.json();
+          if (data.success) {
+            const index = notes.findIndex(n => n.name === name);
+            notes = notes.filter(n => n.name !== name);
+
+            if (activeNoteName === name) {
+              activeNoteName = notes[Math.min(index, notes.length - 1)].name;
             }
+
+            renderTabs();
+            await loadNoteContent(activeNoteName);
+            setSyncStatus("connected", "Deleted note");
+          } else {
+            throw new Error(data.message);
+          }
+        } catch (error) {
+          console.error("Delete failed on server", error);
+          alert("Could not delete note on server. Removing locally.");
+          
+          const index = notes.findIndex(n => n.name === name);
+          notes = notes.filter(n => n.name !== name);
+          if (activeNoteName === name) {
+            activeNoteName = notes[Math.min(index, notes.length - 1)].name;
+          }
+          renderTabs();
+          displayNote(notes.find(n => n.name === activeNoteName));
+          saveOfflineCache();
         }
+      }
 
-        // Save Note to Backend
-        async function saveNote() {
-            setSyncStatus('saving', 'Autosaving...');
-            const content = notepad.value;
+      // Save a single note to server
+      async function saveNoteToServer(note) {
+        setSyncStatus("saving", "Autosaving...");
+        try {
+          const response = await fetch(config.apiUrl, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Accept: "application/json",
+            },
+            body: JSON.stringify({
+              action: "save",
+              name: note.name,
+              content: note.content || ""
+            }),
+          });
 
-            try {
-                const response = await fetch(config.apiUrl, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Accept': 'application/json'
-                    },
-                    body: JSON.stringify({ content: content })
-                });
+          if (!response.ok) throw new Error("Save request failed");
 
-                if (!response.ok) throw new Error('Save request failed');
-
-                const data = await response.json();
-                if (data.success) {
-                    setSyncStatus('connected', 'Saved');
-                    lastSaved.innerText = `Last saved: ${data.time || new Date().toLocaleTimeString()}`;
-                } else {
-                    throw new Error(data.message || 'Unknown save error');
-                }
-            } catch (error) {
-                console.error('Error saving note:', error);
-                setSyncStatus('offline', 'Offline / Connection Error');
-            }
+          const data = await response.json();
+          if (data.success) {
+            setSyncStatus("connected", "Saved");
+            lastSaved.innerText = `Last saved: ${data.time || new Date().toLocaleTimeString()}`;
+            saveOfflineCache();
+          } else {
+            throw new Error(data.message);
+          }
+        } catch (error) {
+          console.error("Autosave failed:", error);
+          setSyncStatus("offline", "Saving offline locally");
+          saveOfflineCache();
         }
+      }
 
-        // Set visual status indicators
-        function setSyncStatus(state, text) {
-            syncStatus.className = 'sync-status'; // Reset classes
-            if (state === 'connected') {
-                syncStatus.classList.add('status-connected');
-            } else if (state === 'saving') {
-                syncStatus.classList.add('status-saving');
-            } else if (state === 'offline') {
-                syncStatus.classList.add('status-offline');
-            }
-            statusText.innerText = text;
-        }
+      // Instantiate a new note on first startup
+      async function instantiateDefaultNote() {
+        const note = {
+          name: "note.txt",
+          content: "",
+          mode: "plain"
+        };
+        notes = [note];
+        activeNoteName = note.name;
+        renderTabs();
+        displayNote(note);
+        await saveNoteToServer(note);
+      }
 
-        // Autosave controller (triggered on keystroke)
-        notepad.addEventListener('input', () => {
-            updateStats();
-            setSyncStatus('saving', 'Typing...');
-            
-            // Clear previous timeout and delay save for 1.2s of inactivity
-            clearTimeout(autosaveTimeout);
-            autosaveTimeout = setTimeout(saveNote, 1200);
-        });
+      // Offline Cache Systems
+      function saveOfflineCache() {
+        localStorage.setItem("offline_notes", JSON.stringify(notes));
+        localStorage.setItem("active_note_name", activeNoteName);
+      }
 
-        // Text Statistics
-        function updateStats() {
-            const text = notepad.value;
-            charCount.innerText = `${text.length} character${text.length !== 1 ? 's' : ''}`;
-            
-            const words = text.trim().split(/\s+/).filter(w => w.length > 0);
-            wordCount.innerText = `${words.length} word${words.length !== 1 ? 's' : ''}`;
-        }
-
-        // Modal Controls
-        settingsBtn.addEventListener('click', () => modalOverlay.classList.add('active'));
-        cancelSettings.addEventListener('click', () => modalOverlay.classList.remove('active'));
+      function loadOfflineCache() {
+        const cachedNotes = localStorage.getItem("offline_notes");
+        const cachedActive = localStorage.getItem("active_note_name");
         
-        saveSettings.addEventListener('click', () => {
-            const newUrl = apiUrlInput.value.trim() || DEFAULT_API;
-            config.apiUrl = newUrl;
-            localStorage.setItem('notepad_api_url', newUrl);
-            modalOverlay.classList.remove('active');
-            loadNote(); // Reload note using the newly set API
+        if (cachedNotes) {
+          notes = JSON.parse(cachedNotes);
+          activeNoteName = cachedActive && notes.some(n => n.name === cachedActive) 
+            ? cachedActive 
+            : notes[0].name;
+          
+          // Make sure contents are not null when displaying offline
+          notes.forEach(n => { if (n.content === null) n.content = ""; });
+          
+          renderTabs();
+          displayNote(notes.find(n => n.name === activeNoteName));
+        } else {
+          instantiateDefaultNote();
+        }
+      }
+
+      // Input change listener
+      function handleEditorInput() {
+        const note = notes.find(n => n.name === activeNoteName);
+        if (!note) return;
+
+        if (note.mode === 'rich') {
+          note.content = notepadRich.innerHTML;
+        } else {
+          note.content = notepadPlain.value;
+        }
+
+        updateStats();
+        setSyncStatus("saving", "Typing...");
+
+        // Auto-save debouncer
+        clearTimeout(autosaveTimeout);
+        autosaveTimeout = setTimeout(() => saveNoteToServer(note), 1200);
+      }
+
+      // Stats calculator
+      function updateStats() {
+        const note = notes.find(n => n.name === activeNoteName);
+        if (!note) return;
+
+        const text = note.mode === 'rich' ? notepadRich.innerText : notepadPlain.value;
+        charCount.innerText = `${text.length} character${text.length !== 1 ? "s" : ""}`;
+
+        const words = text.trim().split(/\s+/).filter(w => w.length > 0);
+        wordCount.innerText = `${words.length} word${words.length !== 1 ? "s" : ""}`;
+      }
+
+      // Position tracker
+      function updateCursorPos() {
+        const note = notes.find(n => n.name === activeNoteName);
+        if (!note) return;
+
+        if (note.mode === 'rich') {
+          const selection = window.getSelection();
+          if (!selection.rangeCount) return;
+          
+          const range = selection.getRangeAt(0);
+          const preCaretRange = range.cloneRange();
+          preCaretRange.selectNodeContents(notepadRich);
+          preCaretRange.setEnd(range.endContainer, range.endOffset);
+          
+          const text = preCaretRange.toString();
+          const lines = text.split("\n");
+          const ln = lines.length;
+          const col = lines[lines.length - 1].length + 1;
+          cursorPos.innerText = `Ln ${ln}, Col ${col}`;
+        } else {
+          const text = notepadPlain.value;
+          const selectionStart = notepadPlain.selectionStart;
+          const lines = text.substring(0, selectionStart).split("\n");
+          const ln = lines.length;
+          const col = lines[lines.length - 1].length + 1;
+          cursorPos.innerText = `Ln ${ln}, Col ${col}`;
+        }
+      }
+
+      // Setup DOM & Input Event hooks
+      function setupEventListeners() {
+        // Text changes
+        notepadPlain.addEventListener("input", handleEditorInput);
+        notepadRich.addEventListener("input", handleEditorInput);
+
+        // Selection / Navigation cursor tracking
+        notepadPlain.addEventListener("keyup", updateCursorPos);
+        notepadPlain.addEventListener("click", updateCursorPos);
+        notepadRich.addEventListener("keyup", updateCursorPos);
+        notepadRich.addEventListener("mouseup", updateCursorPos);
+        notepadRich.addEventListener("click", updateCursorPos);
+
+        // Tab add button
+        addTabBtn.addEventListener("click", addNewNote);
+
+        // Close dropdown menu triggers
+        document.querySelectorAll('.menu-trigger').forEach(trigger => {
+          trigger.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const item = trigger.parentElement;
+            const isActive = item.classList.contains('active');
+            
+            closeAllDropdowns();
+            
+            if (!isActive) item.classList.add('active');
+          });
         });
 
-        // Close modal when clicking background
-        modalOverlay.addEventListener('click', (e) => {
-            if (e.target === modalOverlay) modalOverlay.classList.remove('active');
+        // Close UI dropdown components on outer click
+        document.addEventListener('click', closeAllDropdowns);
+
+        // File Operations
+        document.getElementById("menuNewNote").addEventListener('click', addNewNote);
+        document.getElementById("menuSaveNote").addEventListener('click', () => {
+          const note = notes.find(n => n.name === activeNoteName);
+          if (note) saveNoteToServer(note);
+        });
+        document.getElementById("menuDeleteNote").addEventListener('click', () => {
+          if (activeNoteName) deleteNote(activeNoteName);
         });
 
-        // Start everything!
-        init();
+        // Edit Operations
+        document.getElementById("menuUndo").addEventListener('click', () => {
+          document.execCommand('undo', false, null);
+          if (notes.find(n => n.name === activeNoteName).mode === 'plain') {
+            notepadPlain.focus();
+          }
+        });
+        document.getElementById("menuRedo").addEventListener('click', () => {
+          document.execCommand('redo', false, null);
+          if (notes.find(n => n.name === activeNoteName).mode === 'plain') {
+            notepadPlain.focus();
+          }
+        });
+        document.getElementById("menuClearAll").addEventListener('click', () => {
+          if (confirm("Are you sure you want to clear the entire content?")) {
+            const note = notes.find(n => n.name === activeNoteName);
+            if (note) {
+              note.content = "";
+              displayNote(note);
+              saveNoteToServer(note);
+            }
+          }
+        });
+
+        // View Operations
+        document.getElementById("menuToggleTheme").addEventListener('click', () => {
+          showBlobs = !showBlobs;
+          document.querySelectorAll('.blob').forEach(blob => {
+            blob.style.display = showBlobs ? 'block' : 'none';
+          });
+        });
+        document.getElementById("menuToggleWrap").addEventListener('click', () => {
+          wordWrap = !wordWrap;
+          notepadPlain.setAttribute('wrap', wordWrap ? 'on' : 'off');
+          alert(`Word Wrap: ${wordWrap ? 'Enabled' : 'Disabled'}`);
+        });
+
+        // Mode Toggler footer dropdown
+        modeTrigger.addEventListener('click', (e) => {
+          e.stopPropagation();
+          closeAllDropdowns();
+          modeDropdown.classList.add('active');
+        });
+
+        modePlain.addEventListener('click', () => setEditorMode('plain'));
+        modeRich.addEventListener('click', () => setEditorMode('rich'));
+
+        function setEditorMode(mode) {
+          const note = notes.find(n => n.name === activeNoteName);
+          if (!note || note.mode === mode) return;
+
+          note.mode = mode;
+          
+          if (mode === 'plain') {
+            note.content = notepadRich.innerText;
+          } else {
+            note.content = notepadPlain.value.split('\n').map(line => `<p>${line || '<br>'}</p>`).join('');
+          }
+
+          // Change file extension dynamically based on editor type
+          let rootName = note.name.split('.')[0] || "note";
+          note.name = rootName + (mode === 'rich' ? '.html' : '.txt');
+
+          displayNote(note);
+          renderTabs();
+          saveNoteToServer(note);
+        }
+
+        // Formatting controls logic (ExecCommand / Markdown inserts)
+        headingSelect.addEventListener('change', () => {
+          const val = headingSelect.value;
+          const note = notes.find(n => n.name === activeNoteName);
+          if (!note) return;
+
+          if (note.mode === 'rich') {
+            if (val === 'p') {
+              document.execCommand('formatBlock', false, 'p');
+            } else {
+              document.execCommand('formatBlock', false, val.toUpperCase());
+            }
+            handleEditorInput();
+          } else {
+            // Textarea insertion
+            const headerSymbol = val === 'p' ? '' : '#'.repeat(parseInt(val.charAt(1))) + ' ';
+            insertMarkdown(headerSymbol, '');
+          }
+        });
+
+        toolListBullet.addEventListener('click', () => {
+          const note = notes.find(n => n.name === activeNoteName);
+          if (!note) return;
+
+          if (note.mode === 'rich') {
+            document.execCommand('insertUnorderedList', false, null);
+            handleEditorInput();
+          } else {
+            insertMarkdown('- ', '');
+          }
+        });
+
+        toolBold.addEventListener('click', () => {
+          const note = notes.find(n => n.name === activeNoteName);
+          if (!note) return;
+
+          if (note.mode === 'rich') {
+            document.execCommand('bold', false, null);
+            handleEditorInput();
+          } else {
+            insertMarkdown('**', '**');
+          }
+        });
+
+        toolItalic.addEventListener('click', () => {
+          const note = notes.find(n => n.name === activeNoteName);
+          if (!note) return;
+
+          if (note.mode === 'rich') {
+            document.execCommand('italic', false, null);
+            handleEditorInput();
+          } else {
+            insertMarkdown('*', '*');
+          }
+        });
+
+        toolStrikethrough.addEventListener('click', () => {
+          const note = notes.find(n => n.name === activeNoteName);
+          if (!note) return;
+
+          if (note.mode === 'rich') {
+            document.execCommand('strikeThrough', false, null);
+            handleEditorInput();
+          } else {
+            insertMarkdown('~~', '~~');
+          }
+        });
+
+        toolLink.addEventListener('click', () => {
+          const note = notes.find(n => n.name === activeNoteName);
+          if (!note) return;
+
+          const url = prompt("Enter URL:", "https://");
+          if (!url) return;
+
+          if (note.mode === 'rich') {
+            document.execCommand('createLink', false, url);
+            handleEditorInput();
+          } else {
+            insertMarkdown('[', `](${url})`);
+          }
+        });
+
+        toolTable.addEventListener('click', () => {
+          const note = notes.find(n => n.name === activeNoteName);
+          if (!note) return;
+
+          if (note.mode === 'rich') {
+            const tableTemplate = `<table style="width: 100%; border-collapse: collapse; border: 1px solid var(--border-color); margin: 1rem 0;"><thead><tr style="background: rgba(255,255,255,0.05);"><th style="border:1px solid var(--border-color); padding:0.5rem;">Col 1</th><th style="border:1px solid var(--border-color); padding:0.5rem;">Col 2</th></tr></thead><tbody><tr><td style="border:1px solid var(--border-color); padding:0.5rem;">Data 1</td><td style="border:1px solid var(--border-color); padding:0.5rem;">Data 2</td></tr></tbody></table>`;
+            document.execCommand('insertHTML', false, tableTemplate);
+            handleEditorInput();
+          } else {
+            const mdTable = "\n| Col 1 | Col 2 |\n|---|---|\n| Data 1 | Data 2 |\n";
+            insertMarkdown(mdTable, '');
+          }
+        });
+
+        toolClearFormat.addEventListener('click', () => {
+          const note = notes.find(n => n.name === activeNoteName);
+          if (!note) return;
+
+          if (note.mode === 'rich') {
+            document.execCommand('removeFormat', false, null);
+            handleEditorInput();
+          } else {
+            // Strip markdown tags from selection
+            const start = notepadPlain.selectionStart;
+            const end = notepadPlain.selectionEnd;
+            let val = notepadPlain.value;
+            let sel = val.substring(start, end);
+            let cleaned = sel.replace(/[\*\_\|\~\#\[\]\(\)]/g, '');
+            notepadPlain.value = val.substring(0, start) + cleaned + val.substring(end);
+            notepadPlain.selectionStart = start;
+            notepadPlain.selectionEnd = start + cleaned.length;
+            handleEditorInput();
+          }
+        });
+
+        function insertMarkdown(before, after) {
+          notepadPlain.focus();
+          const start = notepadPlain.selectionStart;
+          const end = notepadPlain.selectionEnd;
+          const text = notepadPlain.value;
+          const sel = text.substring(start, end);
+          const replacement = before + sel + after;
+          notepadPlain.value = text.substring(0, start) + replacement + text.substring(end);
+
+          notepadPlain.selectionStart = start + before.length;
+          notepadPlain.selectionEnd = start + before.length + sel.length;
+          handleEditorInput();
+        }
+
+        // Global keybindings
+        document.addEventListener('keydown', (e) => {
+          if ((e.ctrlKey || e.metaKey) && e.key === 'n') {
+            e.preventDefault();
+            addNewNote();
+          }
+          if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+            e.preventDefault();
+            const note = notes.find(n => n.name === activeNoteName);
+            if (note) saveNoteToServer(note);
+          }
+          if ((e.ctrlKey || e.metaKey) && e.key === 'b') {
+            const note = notes.find(n => n.name === activeNoteName);
+            if (note && note.mode === 'plain') {
+              e.preventDefault();
+              insertMarkdown('**', '**');
+            }
+          }
+          if ((e.ctrlKey || e.metaKey) && e.key === 'i') {
+            const note = notes.find(n => n.name === activeNoteName);
+            if (note && note.mode === 'plain') {
+              e.preventDefault();
+              insertMarkdown('*', '*');
+            }
+          }
+        });
+
+        // Config Settings Modal
+        settingsBtn.addEventListener("click", () => modalOverlay.classList.add("active"));
+        cancelSettings.addEventListener("click", () => modalOverlay.classList.remove("active"));
+        saveSettings.addEventListener("click", () => {
+          const newUrl = apiUrlInput.value.trim() || DEFAULT_API;
+          config.apiUrl = newUrl;
+          localStorage.setItem("notepad_api_url", newUrl);
+          modalOverlay.classList.remove("active");
+          loadNotesList(); // Reload notes list using new configuration
+        });
+
+        modalOverlay.addEventListener("click", (e) => {
+          if (e.target === modalOverlay) modalOverlay.classList.remove("active");
+        });
+      }
+
+      function closeAllDropdowns() {
+        document.querySelectorAll('.menu-item').forEach(item => item.classList.remove('active'));
+        modeDropdown.classList.remove('active');
+      }
+
+      // Visual Status Manager
+      function setSyncStatus(state, text) {
+        syncStatus.className = "sync-status";
+        if (state === "connected") {
+          syncStatus.classList.add("status-connected");
+        } else if (state === "saving") {
+          syncStatus.classList.add("status-saving");
+        } else if (state === "offline") {
+          syncStatus.classList.add("status-offline");
+        }
+        statusText.innerText = text;
+      }
+
+      // Run App!
+      init();
     </script>
-</body>
+  </body>
 </html>

@@ -19,21 +19,129 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     exit(0);
 }
 
-$file = 'note.txt';
+$notes_dir = 'notes';
+if (!file_exists($notes_dir)) {
+    mkdir($notes_dir, 0777, true);
+}
+
 $message = '';
 
-// Check if it's an API request (expects JSON or sends JSON)
+// Read raw input
+$raw_input = file_get_contents('php://input');
+$input = json_decode($raw_input, true) ?? [];
+
+// Detect action from query param, post field, or JSON input
+$action = $_GET['action'] ?? $_POST['action'] ?? $input['action'] ?? null;
+
+// Check if it's an API request
 $is_api = (isset($_SERVER['HTTP_ACCEPT']) && strpos($_SERVER['HTTP_ACCEPT'], 'application/json') !== false) ||
           (isset($_SERVER['CONTENT_TYPE']) && strpos($_SERVER['CONTENT_TYPE'], 'application/json') !== false) ||
-          (isset($_SERVER['HTTP_X_REQUESTED_WITH']) && $_SERVER['HTTP_X_REQUESTED_WITH'] === 'XMLHttpRequest');
+          (isset($_SERVER['HTTP_X_REQUESTED_WITH']) && $_SERVER['HTTP_X_REQUESTED_WITH'] === 'XMLHttpRequest') ||
+          $action !== null;
+
+function sanitize_filename($name) {
+    $name = basename($name);
+    // Allow letters, numbers, spaces, dots, dashes, underscores
+    $name = preg_replace('/[^a-zA-Z0-9_\-\. ]/', '', $name);
+    if (empty($name) || $name === '.' || $name === '..') {
+        $name = 'untitled.txt';
+    }
+    return $name;
+}
+
+if ($action !== null) {
+    header('Content-Type: application/json');
+    
+    if ($action === 'list') {
+        $files = [];
+        if (is_dir($notes_dir)) {
+            $dir = opendir($notes_dir);
+            while (($file_name = readdir($dir)) !== false) {
+                if ($file_name !== '.' && $file_name !== '..' && is_file($notes_dir . '/' . $file_name)) {
+                    $filePath = $notes_dir . '/' . $file_name;
+                    $files[] = [
+                        'name' => $file_name,
+                        'size' => filesize($filePath),
+                        'updated_at' => date('Y-m-d H:i:s', filemtime($filePath))
+                    ];
+                }
+            }
+            closedir($dir);
+        }
+        
+        // Sort files by modified time descending (newest first)
+        usort($files, function($a, $b) {
+            return strcmp($b['updated_at'], $a['updated_at']);
+        });
+        
+        echo json_encode([
+            'success' => true,
+            'notes' => $files
+        ]);
+        exit;
+    }
+    
+    if ($action === 'load') {
+        $name = sanitize_filename($_GET['name'] ?? $input['name'] ?? '');
+        $filePath = $notes_dir . '/' . $name;
+        $content = '';
+        if (file_exists($filePath)) {
+            $content = file_get_contents($filePath);
+        }
+        echo json_encode([
+            'success' => true,
+            'name' => $name,
+            'content' => $content
+        ]);
+        exit;
+    }
+    
+    if ($action === 'save') {
+        $name = sanitize_filename($input['name'] ?? $_POST['name'] ?? 'untitled.txt');
+        $content = $input['content'] ?? $_POST['content'] ?? '';
+        $filePath = $notes_dir . '/' . $name;
+        
+        if (file_put_contents($filePath, $content) !== false) {
+            echo json_encode([
+                'success' => true,
+                'name' => $name,
+                'time' => date('H:i:s'),
+                'message' => 'Note saved successfully'
+            ]);
+        } else {
+            echo json_encode([
+                'success' => false,
+                'message' => 'Failed to save note'
+            ]);
+        }
+        exit;
+    }
+    
+    if ($action === 'delete') {
+        $name = sanitize_filename($input['name'] ?? $_POST['name'] ?? '');
+        $filePath = $notes_dir . '/' . $name;
+        
+        if (file_exists($filePath) && unlink($filePath)) {
+            echo json_encode([
+                'success' => true,
+                'message' => 'Note deleted successfully'
+            ]);
+        } else {
+            echo json_encode([
+                'success' => false,
+                'message' => 'Failed to delete note'
+            ]);
+        }
+        exit;
+    }
+}
+
+// Fallback behavior for single-file API (note.txt)
+$fallback_file = 'note.txt';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    // Read raw JSON input from fetch body
-    $raw_input = file_get_contents('php://input');
-    $input = json_decode($raw_input, true);
-    
     $content = $input['content'] ?? $_POST['content'] ?? '';
-    file_put_contents($file, $content);
+    file_put_contents($fallback_file, $content);
     
     if ($is_api || isset($input['content'])) {
         header('Content-Type: application/json');
@@ -48,7 +156,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $message = 'Note saved successfully at ' . date('H:i:s');
 }
 
-$content = file_exists($file) ? file_get_contents($file) : '';
+$content = file_exists($fallback_file) ? file_get_contents($fallback_file) : '';
 
 if ($is_api) {
     header('Content-Type: application/json');
