@@ -1,14 +1,62 @@
 <?php
+// Dynamic CORS Headers to support cross-origin API calls from notepad.vibhu.pro or local tests
+if (isset($_SERVER['HTTP_ORIGIN'])) {
+    header("Access-Control-Allow-Origin: {$_SERVER['HTTP_ORIGIN']}");
+    header('Access-Control-Allow-Credentials: true');
+    header('Access-Control-Max-Age: 86400');    // cache for 1 day
+} else {
+    header("Access-Control-Allow-Origin: *");
+}
+
+// Handle preflight OPTIONS requests
+if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+    if (isset($_SERVER['HTTP_ACCESS_CONTROL_REQUEST_METHOD'])) {
+        header("Access-Control-Allow-Methods: GET, POST, OPTIONS");
+    }
+    if (isset($_SERVER['HTTP_ACCESS_CONTROL_REQUEST_HEADERS'])) {
+        header("Access-Control-Allow-Headers: {$_SERVER['HTTP_ACCESS_CONTROL_REQUEST_HEADERS']}");
+    }
+    exit(0);
+}
+
 $file = 'note.txt';
 $message = '';
 
+// Check if it's an API request (expects JSON or sends JSON)
+$is_api = (isset($_SERVER['HTTP_ACCEPT']) && strpos($_SERVER['HTTP_ACCEPT'], 'application/json') !== false) ||
+          (isset($_SERVER['CONTENT_TYPE']) && strpos($_SERVER['CONTENT_TYPE'], 'application/json') !== false) ||
+          (isset($_SERVER['HTTP_X_REQUESTED_WITH']) && $_SERVER['HTTP_X_REQUESTED_WITH'] === 'XMLHttpRequest');
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $content = $_POST['content'] ?? '';
+    // Read raw JSON input from fetch body
+    $raw_input = file_get_contents('php://input');
+    $input = json_decode($raw_input, true);
+    
+    $content = $input['content'] ?? $_POST['content'] ?? '';
     file_put_contents($file, $content);
+    
+    if ($is_api || isset($input['content'])) {
+        header('Content-Type: application/json');
+        echo json_encode([
+            'success' => true,
+            'message' => 'Note saved successfully',
+            'time' => date('H:i:s')
+        ]);
+        exit;
+    }
+    
     $message = 'Note saved successfully at ' . date('H:i:s');
 }
 
 $content = file_exists($file) ? file_get_contents($file) : '';
+
+if ($is_api) {
+    header('Content-Type: application/json');
+    echo json_encode([
+        'content' => $content
+    ]);
+    exit;
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">

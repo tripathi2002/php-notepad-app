@@ -3,19 +3,22 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PHP Notepad | Modern Notes</title>
-    <!-- Using Google Fonts for modern typography -->
+    <title>Cloud Notepad | Secure & Seamless</title>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
 
         :root {
-            --bg-color: #0f172a;
-            --primary: #3b82f6;
-            --primary-hover: #2563eb;
-            --text-main: #f8fafc;
-            --text-muted: #94a3b8;
-            --glass-bg: rgba(30, 41, 59, 0.7);
-            --glass-border: rgba(255, 255, 255, 0.1);
+            --bg-color: #0b0f19;
+            --card-bg: rgba(17, 24, 39, 0.7);
+            --border-color: rgba(255, 255, 255, 0.08);
+            --text-main: #f3f4f6;
+            --text-muted: #9ca3af;
+            --accent-color: #3b82f6;
+            --accent-hover: #2563eb;
+            --success-color: #10b981;
+            --warning-color: #f59e0b;
+            --danger-color: #ef4444;
+            --shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
         }
 
         * {
@@ -24,225 +27,495 @@
             box-sizing: border-box;
         }
 
-        body {
+        body, html {
+            height: 100%;
             font-family: 'Outfit', sans-serif;
             background-color: var(--bg-color);
             color: var(--text-main);
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            overflow-x: hidden;
+            overflow: hidden;
             position: relative;
         }
 
-        /* Animated Background Gradients for Premium Feel */
+        /* Ambient Animated Blobs */
         .blob {
             position: absolute;
-            filter: blur(80px);
+            filter: blur(120px);
             z-index: -1;
-            opacity: 0.6;
-            animation: float 10s infinite ease-in-out alternate;
+            opacity: 0.4;
+            animation: float 15s infinite ease-in-out alternate;
         }
         .blob-1 {
             top: -10%;
             left: -10%;
-            width: 400px;
-            height: 400px;
+            width: 500px;
+            height: 500px;
             background: linear-gradient(135deg, #3b82f6, #8b5cf6);
             border-radius: 50%;
         }
         .blob-2 {
             bottom: -10%;
             right: -10%;
-            width: 500px;
-            height: 500px;
+            width: 600px;
+            height: 600px;
             background: linear-gradient(135deg, #ec4899, #f43f5e);
             border-radius: 50%;
-            animation-delay: -5s;
+            animation-delay: -7s;
         }
 
         @keyframes float {
             0% { transform: translate(0, 0) scale(1); }
-            100% { transform: translate(30px, 50px) scale(1.1); }
+            100% { transform: translate(50px, 80px) scale(1.15); }
         }
 
-        .container {
-            max-width: 1200px;
+        .app-container {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            max-width: 1000px;
             margin: 0 auto;
-            padding: 2rem;
-            flex-grow: 1;
+            background: var(--card-bg);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-left: 1px solid var(--border-color);
+            border-right: 1px solid var(--border-color);
+            box-shadow: var(--shadow);
+        }
+
+        /* Header Styling */
+        header {
+            padding: 1.25rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--border-color);
+            background: rgba(15, 23, 42, 0.4);
+        }
+
+        .logo-section h1 {
+            font-size: 1.5rem;
+            font-weight: 700;
             display: flex;
             align-items: center;
-            justify-content: center;
-            text-align: center;
-        }
-
-        .glass-panel {
-            background: var(--glass-bg);
-            backdrop-filter: blur(16px);
-            -webkit-backdrop-filter: blur(16px);
-            border: 1px solid var(--glass-border);
-            border-radius: 24px;
-            padding: 4rem 3rem;
-            max-width: 800px;
-            width: 100%;
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
-            transform: translateY(0);
-            transition: transform 0.3s ease;
-        }
-
-        .glass-panel:hover {
-            transform: translateY(-5px);
-        }
-
-        h1 {
-            font-size: 4rem;
-            font-weight: 800;
-            line-height: 1.1;
-            margin-bottom: 1.5rem;
-            background: linear-gradient(to right, #60a5fa, #c084fc, #f472b6);
+            gap: 0.75rem;
+            background: linear-gradient(to right, #60a5fa, #c084fc);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
         }
 
-        p {
-            font-size: 1.25rem;
-            color: var(--text-muted);
-            margin-bottom: 2.5rem;
-            line-height: 1.6;
+        .logo-section svg {
+            stroke: #60a5fa;
         }
 
-        .btn-group {
+        /* Status & Actions */
+        .sync-status {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.85rem;
+            font-weight: 500;
+            padding: 0.4rem 0.8rem;
+            border-radius: 9999px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border-color);
+            transition: all 0.3s ease;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            display: inline-block;
+        }
+
+        /* Dynamic Status States */
+        .status-connected { color: var(--success-color); border-color: rgba(16, 185, 129, 0.2); }
+        .status-connected .status-dot { background-color: var(--success-color); box-shadow: 0 0 8px var(--success-color); }
+        
+        .status-saving { color: var(--accent-color); border-color: rgba(59, 130, 246, 0.2); }
+        .status-saving .status-dot { background-color: var(--accent-color); animation: pulse 1s infinite alternate; }
+        
+        .status-offline { color: var(--danger-color); border-color: rgba(239, 68, 68, 0.2); }
+        .status-offline .status-dot { background-color: var(--danger-color); box-shadow: 0 0 8px var(--danger-color); }
+
+        @keyframes pulse {
+            0% { transform: scale(0.8); opacity: 0.5; }
+            100% { transform: scale(1.2); opacity: 1; box-shadow: 0 0 10px var(--accent-color); }
+        }
+
+        .actions {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .btn-icon {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border-color);
+            color: var(--text-main);
+            width: 38px;
+            height: 38px;
+            border-radius: 10px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+        }
+
+        .btn-icon:hover {
+            background: rgba(255, 255, 255, 0.1);
+            transform: translateY(-1px);
+            border-color: rgba(255, 255, 255, 0.2);
+        }
+
+        /* Text Area Workspace */
+        .editor-container {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+
+        textarea {
+            flex-grow: 1;
+            width: 100%;
+            border: none;
+            padding: 2rem;
+            font-size: 1.1rem;
+            line-height: 1.7;
+            resize: none;
+            outline: none;
+            box-sizing: border-box;
+            background-color: transparent;
+            color: var(--text-main);
+            font-family: 'JetBrains Mono', 'Fira Code', Consolas, monospace;
+            transition: all 0.3s ease;
+        }
+
+        textarea::placeholder {
+            color: rgba(156, 163, 175, 0.4);
+        }
+
+        /* Footer Toolbar */
+        footer {
+            padding: 0.75rem 2rem;
+            background: rgba(15, 23, 42, 0.4);
+            border-top: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+        }
+
+        .stats {
             display: flex;
             gap: 1.5rem;
-            justify-content: center;
-            flex-wrap: wrap;
         }
 
-        .btn {
-            display: inline-flex;
+        /* Settings Modal */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.75);
+            backdrop-filter: blur(5px);
+            display: flex;
             align-items: center;
-            gap: 0.75rem;
-            padding: 1rem 2.5rem;
-            font-size: 1.125rem;
-            font-weight: 600;
-            border-radius: 9999px;
-            text-decoration: none;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            position: relative;
-            overflow: hidden;
+            justify-content: center;
+            z-index: 100;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
         }
 
-        .btn-primary {
-            background-color: var(--primary);
-            color: white;
-            box-shadow: 0 4px 14px 0 rgba(59, 130, 246, 0.39);
+        .modal-overlay.active {
+            opacity: 1;
+            pointer-events: auto;
         }
 
-        .btn-primary:hover {
-            background-color: var(--primary-hover);
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(59, 130, 246, 0.23);
-        }
-
-        .btn-secondary {
-            background: rgba(255, 255, 255, 0.05);
-            color: white;
-            border: 1px solid var(--glass-border);
-        }
-
-        .btn-secondary:hover {
-            background: rgba(255, 255, 255, 0.1);
-            transform: translateY(-2px);
-        }
-
-        .features {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 2rem;
-            margin-top: 4rem;
-            text-align: left;
-        }
-
-        .feature-card {
-            padding: 1.5rem;
-            background: rgba(255, 255, 255, 0.03);
+        .modal {
+            background: #111827;
+            border: 1px solid var(--border-color);
             border-radius: 16px;
-            border: 1px solid rgba(255, 255, 255, 0.05);
+            padding: 2rem;
+            width: 90%;
+            max-width: 450px;
+            box-shadow: var(--shadow);
+            transform: scale(0.9);
             transition: transform 0.3s ease;
         }
 
-        .feature-card:hover {
-            transform: translateY(-3px);
-            background: rgba(255, 255, 255, 0.05);
+        .modal-overlay.active .modal {
+            transform: scale(1);
         }
 
-        .feature-card h3 {
-            color: #e2e8f0;
+        .modal h2 {
+            font-size: 1.25rem;
+            margin-bottom: 1rem;
+            color: #fff;
+        }
+
+        .form-group {
+            margin-bottom: 1.25rem;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 0.85rem;
+            color: var(--text-muted);
             margin-bottom: 0.5rem;
-            font-size: 1.1rem;
         }
 
-        .feature-card p {
-            font-size: 0.9rem;
-            margin-bottom: 0;
-            color: #94a3b8;
+        .form-group input {
+            width: 100%;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border-color);
+            color: #fff;
+            padding: 0.75rem 1rem;
+            border-radius: 8px;
+            font-family: inherit;
+            outline: none;
         }
 
-        @media (max-width: 768px) {
-            h1 { font-size: 2.5rem; }
-            .glass-panel { padding: 2rem 1.5rem; }
+        .form-group input:focus {
+            border-color: var(--accent-color);
+        }
+
+        .modal-buttons {
+            display: flex;
+            justify-content: flex-end;
+            gap: 0.75rem;
+        }
+
+        .btn-modal {
+            padding: 0.6rem 1.2rem;
+            border-radius: 8px;
+            font-size: 0.875rem;
+            cursor: pointer;
+            font-weight: 500;
+            border: none;
+            transition: all 0.2s ease;
+        }
+
+        .btn-save-settings {
+            background: var(--accent-color);
+            color: #fff;
+        }
+
+        .btn-save-settings:hover {
+            background: var(--accent-hover);
+        }
+
+        .btn-cancel-settings {
+            background: rgba(255, 255, 255, 0.05);
+            color: var(--text-main);
+            border: 1px solid var(--border-color);
+        }
+
+        .btn-cancel-settings:hover {
+            background: rgba(255, 255, 255, 0.1);
         }
     </style>
 </head>
 <body>
-    <!-- Floating ambient background effects -->
     <div class="blob blob-1"></div>
     <div class="blob blob-2"></div>
 
-    <div class="container">
-        <div class="glass-panel">
-            <h1>PHP Notepad</h1>
-            <p>A beautifully simple, incredibly fast note-taking environment. Built with modern web technologies and powered by PHP.</p>
-            
-            <div class="btn-group">
-                <!-- IMPORTANT: Currently points to index.php. Once you host the PHP server, update this link to point to your live URL! -->
-                <a href="index.php" class="btn btn-primary" id="launchBtn">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
-                        <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+    <div class="app-container">
+        <header>
+            <div class="logo-section">
+                <h1>
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
                     </svg>
-                    Launch Notepad
-                </a>
-                <a href="https://github.com/tripathi2002/php-notepad-app" target="_blank" class="btn btn-secondary">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"></path>
-                    </svg>
-                    GitHub Repo
-                </a>
+                    Cloud Notepad
+                </h1>
             </div>
+            
+            <div class="actions">
+                <div class="sync-status status-connected" id="syncStatus">
+                    <span class="status-dot"></span>
+                    <span class="status-text" id="statusText">Connected</span>
+                </div>
+                
+                <button class="btn-icon" id="settingsBtn" title="API Settings">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="3"></circle>
+                        <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+                    </svg>
+                </button>
+            </div>
+        </header>
 
-            <div class="features">
-                <div class="feature-card">
-                    <h3>Modern Design</h3>
-                    <p>Beautiful dark-mode interface with glassmorphism effects.</p>
-                </div>
-                <div class="feature-card">
-                    <h3>Lightweight</h3>
-                    <p>No heavy databases or complex setups. Just PHP and text files.</p>
-                </div>
+        <div class="editor-container">
+            <textarea id="notepad" placeholder="Your cloud note is empty. Start typing and it will autosave..." spellcheck="false" autofocus></textarea>
+        </div>
+
+        <footer>
+            <div class="stats">
+                <span id="charCount">0 characters</span>
+                <span id="wordCount">0 words</span>
+            </div>
+            <div id="lastSaved">Not loaded yet</div>
+        </footer>
+    </div>
+
+    <!-- Configuration Modal -->
+    <div class="modal-overlay" id="modalOverlay">
+        <div class="modal">
+            <h2>Cloud Settings</h2>
+            <div class="form-group">
+                <label for="apiUrl">PHP Backend API URL</label>
+                <input type="url" id="apiUrl" placeholder="https://vibhu.pro/notepad/index.php">
+            </div>
+            <div class="modal-buttons">
+                <button class="btn-modal btn-cancel-settings" id="cancelSettings">Cancel</button>
+                <button class="btn-modal btn-save-settings" id="saveSettings">Save Configuration</button>
             </div>
         </div>
     </div>
-    
+
     <script>
-        // Check if we are running on GitHub pages. If so, we alert the user that the Notepad needs a PHP server.
-        document.getElementById('launchBtn').addEventListener('click', function(e) {
-            if (window.location.hostname.includes('github.io')) {
-                e.preventDefault();
-                alert('The Notepad functionality requires PHP! You are currently on GitHub Pages (which only supports static HTML).\n\nPlease upload the PHP files to a web host, and update the "Launch Notepad" link in index.html to point to your new server.');
+        // DOM Elements
+        const notepad = document.getElementById('notepad');
+        const syncStatus = document.getElementById('syncStatus');
+        const statusText = document.getElementById('statusText');
+        const charCount = document.getElementById('charCount');
+        const wordCount = document.getElementById('wordCount');
+        const lastSaved = document.getElementById('lastSaved');
+        const settingsBtn = document.getElementById('settingsBtn');
+        const modalOverlay = document.getElementById('modalOverlay');
+        const cancelSettings = document.getElementById('cancelSettings');
+        const saveSettings = document.getElementById('saveSettings');
+        const apiUrlInput = document.getElementById('apiUrl');
+
+        // Default Config API endpoint (falls back to local relative path if not configured)
+        const DEFAULT_API = window.location.hostname.includes('github.io') || window.location.hostname.includes('vibhu.pro')
+            ? 'https://vibhu.pro/notepad/index.php' 
+            : 'index.php';
+
+        let config = {
+            apiUrl: localStorage.getItem('notepad_api_url') || DEFAULT_API
+        };
+
+        let autosaveTimeout;
+
+        // Initialize App
+        function init() {
+            apiUrlInput.value = config.apiUrl;
+            updateStats();
+            loadNote();
+        }
+
+        // Fetch Note from Backend
+        async function loadNote() {
+            setSyncStatus('saving', 'Loading note...');
+            try {
+                const response = await fetch(config.apiUrl, {
+                    method: 'GET',
+                    headers: {
+                        'Accept': 'application/json',
+                    }
+                });
+
+                if (!response.ok) throw new Error('Network response was not ok');
+
+                const data = await response.json();
+                notepad.value = data.content || '';
+                updateStats();
+                setSyncStatus('connected', 'Synced');
+                lastSaved.innerText = 'Last synced: Just now';
+            } catch (error) {
+                console.error('Error loading note:', error);
+                setSyncStatus('offline', 'Error loading note');
+                lastSaved.innerText = 'Sync failed';
             }
+        }
+
+        // Save Note to Backend
+        async function saveNote() {
+            setSyncStatus('saving', 'Autosaving...');
+            const content = notepad.value;
+
+            try {
+                const response = await fetch(config.apiUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify({ content: content })
+                });
+
+                if (!response.ok) throw new Error('Save request failed');
+
+                const data = await response.json();
+                if (data.success) {
+                    setSyncStatus('connected', 'Saved');
+                    lastSaved.innerText = `Last saved: ${data.time || new Date().toLocaleTimeString()}`;
+                } else {
+                    throw new Error(data.message || 'Unknown save error');
+                }
+            } catch (error) {
+                console.error('Error saving note:', error);
+                setSyncStatus('offline', 'Offline / Connection Error');
+            }
+        }
+
+        // Set visual status indicators
+        function setSyncStatus(state, text) {
+            syncStatus.className = 'sync-status'; // Reset classes
+            if (state === 'connected') {
+                syncStatus.classList.add('status-connected');
+            } else if (state === 'saving') {
+                syncStatus.classList.add('status-saving');
+            } else if (state === 'offline') {
+                syncStatus.classList.add('status-offline');
+            }
+            statusText.innerText = text;
+        }
+
+        // Autosave controller (triggered on keystroke)
+        notepad.addEventListener('input', () => {
+            updateStats();
+            setSyncStatus('saving', 'Typing...');
+            
+            // Clear previous timeout and delay save for 1.2s of inactivity
+            clearTimeout(autosaveTimeout);
+            autosaveTimeout = setTimeout(saveNote, 1200);
         });
+
+        // Text Statistics
+        function updateStats() {
+            const text = notepad.value;
+            charCount.innerText = `${text.length} character${text.length !== 1 ? 's' : ''}`;
+            
+            const words = text.trim().split(/\s+/).filter(w => w.length > 0);
+            wordCount.innerText = `${words.length} word${words.length !== 1 ? 's' : ''}`;
+        }
+
+        // Modal Controls
+        settingsBtn.addEventListener('click', () => modalOverlay.classList.add('active'));
+        cancelSettings.addEventListener('click', () => modalOverlay.classList.remove('active'));
+        
+        saveSettings.addEventListener('click', () => {
+            const newUrl = apiUrlInput.value.trim() || DEFAULT_API;
+            config.apiUrl = newUrl;
+            localStorage.setItem('notepad_api_url', newUrl);
+            modalOverlay.classList.remove('active');
+            loadNote(); // Reload note using the newly set API
+        });
+
+        // Close modal when clicking background
+        modalOverlay.addEventListener('click', (e) => {
+            if (e.target === modalOverlay) modalOverlay.classList.remove('active');
+        });
+
+        // Start everything!
+        init();
     </script>
 </body>
 </html>
