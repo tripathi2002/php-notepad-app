@@ -595,6 +595,43 @@
         color: #fff;
       }
 
+      /* File Browser Modal CSS */
+      .file-browser-list {
+        max-height: 300px;
+        overflow-y: auto;
+        margin-bottom: 1.25rem;
+        background: rgba(0, 0, 0, 0.2);
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        padding: 0.5rem;
+      }
+      .file-item {
+        padding: 0.5rem 0.75rem;
+        border-radius: 6px;
+        cursor: pointer;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        transition: background 0.2s;
+        color: var(--text-main);
+      }
+      .file-item:hover {
+        background: rgba(255, 255, 255, 0.08);
+      }
+      .file-item-name {
+        font-size: 0.9rem;
+      }
+      .file-item-date {
+        font-size: 0.75rem;
+        color: var(--text-muted);
+      }
+      .file-item-empty {
+        text-align: center;
+        padding: 1rem;
+        color: var(--text-muted);
+        font-size: 0.85rem;
+      }
+
       /* Settings Modal */
       .modal-overlay {
         position: fixed;
@@ -748,6 +785,11 @@
                   <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
                   <polyline points="14 2 14 8 20 8"></polyline>
                 </svg> New Note
+              </button>
+              <button class="dropdown-btn" id="menuOpenNote">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
+                </svg> Open Note
               </button>
               <button class="dropdown-btn" id="menuSaveNote">
                 <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -938,6 +980,19 @@
       </div>
     </div>
 
+    <!-- Open File Modal -->
+    <div class="modal-overlay" id="openFileModal">
+      <div class="modal">
+        <h2>Open Note</h2>
+        <div class="file-browser-list" id="fileBrowserList">
+          <!-- File items injected here -->
+        </div>
+        <div class="modal-buttons">
+          <button class="btn-modal btn-cancel-settings" id="cancelOpenFile">Cancel</button>
+        </div>
+      </div>
+    </div>
+
     <script>
       // DOM Elements
       const notepadPlain = document.getElementById("notepad-plain");
@@ -984,6 +1039,7 @@
       };
 
       // State Management
+      let serverFiles = [];
       let notes = [];
       let activeNoteName = null;
       let autosaveTimeout = null;
@@ -1003,33 +1059,46 @@
         try {
           const response = await fetch(`${config.apiUrl}?action=list`, {
             method: "GET",
-            headers: {
-              Accept: "application/json",
-            },
+            headers: { Accept: "application/json" },
           });
 
           if (!response.ok) throw new Error("Network error loading notes list");
 
           const data = await response.json();
-          if (data.success && data.notes && data.notes.length > 0) {
-            notes = data.notes.map(noteInfo => ({
-              name: noteInfo.name,
-              content: null, // Load contents lazily
-              mode: noteInfo.name.endsWith('.html') || noteInfo.name.endsWith('.htm') ? 'rich' : 'plain'
-            }));
-            
-            // Choose active note: restore from local storage or default to first
-            const cachedActive = localStorage.getItem("active_note_name");
-            if (cachedActive && notes.some(n => n.name === cachedActive)) {
-              activeNoteName = cachedActive;
-            } else {
-              activeNoteName = notes[0].name;
-            }
-            
-            await loadNoteContent(activeNoteName);
+          if (data.success && data.notes) {
+            serverFiles = data.notes.map(n => n.name);
           } else {
-            // Empty server folder, instantiate default
-            await instantiateDefaultNote();
+            serverFiles = [];
+          }
+
+          // Restore open tabs from local cache
+          const cachedNotes = localStorage.getItem("offline_notes");
+          const cachedActive = localStorage.getItem("active_note_name");
+          
+          if (cachedNotes) {
+             notes = JSON.parse(cachedNotes);
+             activeNoteName = cachedActive && notes.some(n => n.name === cachedActive) 
+               ? cachedActive 
+               : (notes.length > 0 ? notes[0].name : null);
+             
+             if (notes.length === 0) {
+               await instantiateDefaultNote();
+             } else {
+               await loadNoteContent(activeNoteName);
+             }
+          } else if (serverFiles.length > 0) {
+             // Fallback: open just the first file from server if no cache
+             const firstFile = serverFiles[0];
+             notes = [{ 
+               name: firstFile, 
+               content: null, 
+               mode: firstFile.endsWith('.html') || firstFile.endsWith('.htm') ? 'rich' : 'plain' 
+             }];
+             activeNoteName = firstFile;
+             await loadNoteContent(activeNoteName);
+          } else {
+             // Empty server folder, instantiate default
+             await instantiateDefaultNote();
           }
         } catch (error) {
           console.error("Backend error: falling back to offline storage", error);
@@ -1134,10 +1203,10 @@
             }
           });
 
-          // Close button click
+          // Close button click (close tab without deleting file)
           tab.querySelector('.tab-close').addEventListener('click', (e) => {
             e.stopPropagation();
-            deleteNote(note.name);
+            closeTab(note.name);
           });
 
           tabBar.appendChild(tab);
@@ -1272,55 +1341,64 @@
         await saveNoteToServer(newNote);
       }
 
-      // Delete an existing note
-      async function deleteNote(name) {
+      // Close tab locally
+      function closeTab(name) {
         if (notes.length <= 1) {
           alert("You must keep at least one note open!");
           return;
         }
+        
+        const index = notes.findIndex(n => n.name === name);
+        if (index === -1) return;
+        
+        notes.splice(index, 1);
+        if (activeNoteName === name) {
+          activeNoteName = notes[Math.min(index, notes.length - 1)].name;
+        }
+        
+        renderTabs();
+        loadNoteContent(activeNoteName);
+      }
 
-        if (!confirm(`Are you sure you want to permanently delete "${name}"?`)) return;
+      // Delete an existing note permanently from server
+      async function deleteNote(name) {
+        if (!confirm(`Are you sure you want to permanently delete "${name}" from the server?`)) return;
 
         setSyncStatus("saving", "Deleting...");
         try {
           const response = await fetch(config.apiUrl, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              action: "delete",
-              name: name
-            })
+            body: JSON.stringify({ action: "delete", name: name })
           });
 
           if (!response.ok) throw new Error("Delete failed");
 
           const data = await response.json();
           if (data.success) {
-            const index = notes.findIndex(n => n.name === name);
-            notes = notes.filter(n => n.name !== name);
-
-            if (activeNoteName === name) {
-              activeNoteName = notes[Math.min(index, notes.length - 1)].name;
+            // Remove from serverFiles list
+            serverFiles = serverFiles.filter(f => f !== name);
+            
+            // Close tab if open
+            if (notes.some(n => n.name === name)) {
+               const index = notes.findIndex(n => n.name === name);
+               notes.splice(index, 1);
+               if (notes.length === 0) {
+                 await instantiateDefaultNote();
+               } else if (activeNoteName === name) {
+                 activeNoteName = notes[Math.min(index, notes.length - 1)].name;
+                 await loadNoteContent(activeNoteName);
+               } else {
+                 renderTabs();
+               }
             }
-
-            renderTabs();
-            await loadNoteContent(activeNoteName);
             setSyncStatus("connected", "Deleted note");
           } else {
             throw new Error(data.message);
           }
         } catch (error) {
           console.error("Delete failed on server", error);
-          alert("Could not delete note on server. Removing locally.");
-          
-          const index = notes.findIndex(n => n.name === name);
-          notes = notes.filter(n => n.name !== name);
-          if (activeNoteName === name) {
-            activeNoteName = notes[Math.min(index, notes.length - 1)].name;
-          }
-          renderTabs();
-          displayNote(notes.find(n => n.name === activeNoteName));
-          saveOfflineCache();
+          alert("Could not delete note on server.");
         }
       }
 
@@ -1345,6 +1423,9 @@
 
           const data = await response.json();
           if (data.success) {
+            if (!serverFiles.includes(note.name)) {
+              serverFiles.push(note.name);
+            }
             setSyncStatus("connected", "Saved");
             lastSaved.innerText = `Last saved: ${data.time || new Date().toLocaleTimeString()}`;
             saveOfflineCache();
@@ -1492,6 +1573,7 @@
 
         // File Operations
         document.getElementById("menuNewNote").addEventListener('click', addNewNote);
+        document.getElementById("menuOpenNote").addEventListener('click', openFileBrowser);
         document.getElementById("menuSaveNote").addEventListener('click', () => {
           const note = notes.find(n => n.name === activeNoteName);
           if (note) saveNoteToServer(note);
@@ -1740,6 +1822,74 @@
 
         modalOverlay.addEventListener("click", (e) => {
           if (e.target === modalOverlay) modalOverlay.classList.remove("active");
+        });
+        
+        // File Browser Logic
+        const openFileModal = document.getElementById("openFileModal");
+        const cancelOpenFile = document.getElementById("cancelOpenFile");
+        const fileBrowserList = document.getElementById("fileBrowserList");
+        
+        cancelOpenFile.addEventListener("click", () => openFileModal.classList.remove("active"));
+        openFileModal.addEventListener("click", (e) => {
+          if (e.target === openFileModal) openFileModal.classList.remove("active");
+        });
+      }
+      
+      async function openFileBrowser() {
+        const openFileModal = document.getElementById("openFileModal");
+        const fileBrowserList = document.getElementById("fileBrowserList");
+        
+        openFileModal.classList.add("active");
+        fileBrowserList.innerHTML = '<div class="file-item-empty">Loading files...</div>';
+        
+        // Fetch latest list from server
+        try {
+          const response = await fetch(`${config.apiUrl}?action=list`, { headers: { Accept: "application/json" }});
+          const data = await response.json();
+          if (data.success && data.notes) {
+            serverFiles = data.notes.map(n => n.name);
+          }
+        } catch (e) {
+          console.error(e);
+        }
+
+        fileBrowserList.innerHTML = '';
+        if (serverFiles.length === 0) {
+           fileBrowserList.innerHTML = '<div class="file-item-empty">No files found on server.</div>';
+           return;
+        }
+        
+        serverFiles.forEach(file => {
+           const div = document.createElement('div');
+           div.className = 'file-item';
+           const isRich = file.endsWith('.html') || file.endsWith('.htm');
+           const icon = isRich 
+             ? `<svg width="14" height="14" fill="none" stroke="#a78bfa" stroke-width="2.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>`
+             : `<svg width="14" height="14" fill="none" stroke="#60a5fa" stroke-width="2.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>`;
+           
+           div.innerHTML = `
+             <div style="display:flex; align-items:center; gap:0.5rem">
+               ${icon}
+               <span class="file-item-name">${file}</span>
+             </div>
+             ${notes.some(n => n.name === file) ? '<span class="file-item-date">Open</span>' : ''}
+           `;
+           
+           div.addEventListener('click', () => {
+              openFileModal.classList.remove("active");
+              if (notes.some(n => n.name === file)) {
+                activeNoteName = file;
+                loadNoteContent(file);
+              } else {
+                const newNote = { name: file, content: null, mode: isRich ? 'rich' : 'plain' };
+                notes.push(newNote);
+                activeNoteName = file;
+                renderTabs();
+                loadNoteContent(file);
+              }
+           });
+           
+           fileBrowserList.appendChild(div);
         });
       }
 
