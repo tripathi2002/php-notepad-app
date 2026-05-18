@@ -1,0 +1,52 @@
+# Enable rewrite
+RewriteEngine On
+
+# Set base path (important since it's inside /notepad)
+RewriteBase /notepad/
+
+# -----------------------------
+# 🚫 Security: block sensitive files
+# -----------------------------
+<FilesMatch "\.(env|ini|log|sh|sql|bak|config)$">
+    Order allow,deny
+    Deny from all
+</FilesMatch>
+
+# Block direct access to config
+<Files "config.php">
+    Order allow,deny
+    Deny from all
+</Files>
+
+# -----------------------------
+# 📤 Upload limits (server-side)
+# -----------------------------
+php_value upload_max_filesize 50M
+php_value post_max_size 50M
+php_value max_execution_time 300
+php_value max_input_time 300
+php_value memory_limit 256M
+
+# -----------------------------
+# 🧱 Prevent script execution in uploads
+# -----------------------------
+RewriteRule ^uploads/.*\.(php|phtml|php3|php4|php5)$ - [F,L]
+
+# -----------------------------
+# 📁 Allow file listing (optional)
+# -----------------------------
+Options +Indexes
+
+# -----------------------------
+# 🌐 CORS (optional, for API usage)
+# -----------------------------
+Header set Access-Control-Allow-Origin "*"
+Header set Access-Control-Allow-Methods "GET, POST, OPTIONS"
+Header set Access-Control-Allow-Headers "Content-Type"
+
+# -----------------------------
+# ⚡ Pretty URLs (optional)
+# -----------------------------
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^api/(.*)$ $1.php [L]
